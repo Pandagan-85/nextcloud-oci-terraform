@@ -16,7 +16,7 @@ This project demonstrates how to deploy a **fully-featured, secure, and scalable
 - **Automatic backups** and monitoring
 - **Comprehensive documentation** for reproducibility
 
-**Current Status:** ✅ Infrastructure complete | 🔄 Data migration in progress
+**Current Status:** ✅ Production Ready | 🔒 Security Hardened | 💾 Automated Backups
 
 ## ✨ Features
 
@@ -39,11 +39,11 @@ This project demonstrates how to deploy a **fully-featured, secure, and scalable
 
 - ✅ Nextcloud Hub 25 Autumn (latest version)
 - ✅ Nextcloud Office (Collabora Online)
-- ✅ Nextcloud Talk (video calls & chat)
-- ✅ Calendar, Contacts, Tasks
+- ✅ Calendar, Contacts, Tasks (CalDAV/CardDAV)
 - ✅ Photo management with preview generation
-- ✅ Whiteboard collaboration
-- ✅ Automated daily backups
+- ✅ File sync and sharing
+- ✅ Automated daily backups with off-site copies
+- ⚙️ Optimized for single-user performance (Talk & Whiteboard removed)
 
 ## 📚 Tech Stack
 
@@ -93,9 +93,9 @@ Internet
 │  - Redis Cache                      │
 │  - Apache Web Server                │
 │  - Collabora Office                 │
-│  - Talk (video/chat)                │
 │  - Imaginary (image processing)     │
 │  - Notify Push                      │
+│  - BorgBackup (daily 04:00 UTC)     │
 └─────────────────────────────────────┘
 ```
 
@@ -168,6 +168,7 @@ Comprehensive step-by-step guides:
 | [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)       | UFW and Fail2ban configuration         |
 | [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)   | Caddy setup for automatic SSL          |
 | [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md) | Nextcloud AIO deployment guide         |
+| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md)             | Backup strategy and disaster recovery  |
 
 ## 🔐 Security Features
 
@@ -180,23 +181,59 @@ Comprehensive step-by-step guides:
 
 ## 💾 Backup Strategy
 
-- **Automated**: Daily backups via Nextcloud AIO
-- **Local retention**: 7 days
-- **Components backed up**:
+Dual backup system for maximum data protection:
+
+### Borg Backup (System-level)
+- **Automated**: Daily backups at 04:00 UTC via Nextcloud AIO
+- **Location**: `/mnt/backup/borg/` on OCI instance
+- **Retention**: 7 days
+- **Encryption**: Yes (password-protected)
+- **Off-site**: Weekly download to local PC with `download-backup.sh`
+- **Components**:
   - Database (PostgreSQL)
   - User files and data
   - Configuration
   - App data
 
+### Data Export (Human-readable)
+- **Automated**: Weekly export via cron (Sunday 22:00)
+- **Location**: `~/nextcloud-exports/` on local PC
+- **Formats**:
+  - Calendars (.ics files)
+  - Contacts (.vcf file)
+  - File list
+- **Portability**: Import to Google/Apple/Outlook
+- **Script**: `export-data.sh`
+
+### Automation
+
+⚠️ **IMPORTANT**: Cron must be configured once after deployment!
+
+```bash
+# Setup automated weekly backups (one-time setup required!)
+./scripts/setup-cron.sh
+
+# Verify cron is active
+crontab -l
+
+# Manual backup anytime
+./scripts/weekly-backup.sh
+
+# Check backup logs
+tail -f /tmp/nextcloud-backup.log
+```
+
+See: [`docs/06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md) for complete guide
+
 ## 📊 Resource Usage
 
-Typical resource consumption:
+Typical resource consumption (optimized single-user setup):
 
-| Metric      | Usage            | Available   |
-| ----------- | ---------------- | ----------- |
-| **RAM**     | ~8-10GB          | 24GB        |
-| **CPU**     | 10-20% avg       | 4 cores     |
-| **Storage** | ~5-10GB (base)   | 100GB       |
+| Metric      | Usage            | Available   | Note                     |
+| ----------- | ---------------- | ----------- | ------------------------ |
+| **RAM**     | ~1GB active      | 24GB        | Optimized (no Talk/WB)   |
+| **CPU**     | 5-10% avg        | 4 cores     | Low idle consumption     |
+| **Storage** | ~5-10GB (base)   | 100GB       | + user data + backups    |
 | **Network** | Depends on usage | Unlimited\* |
 
 \*OCI Free Tier includes 10TB outbound/month
