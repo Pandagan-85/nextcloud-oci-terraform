@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  nextcloud-aio-mastercontainer:
+    image: nextcloud/all-in-one:latest
+    container_name: nextcloud-aio-mastercontainer
+    restart: always
+
+    ports:
+      - "8080:8080"     # AIO interface
+      - "8443:8443"     # HTTPS AIO interface
+
+    environment:
+      # APACHE_PORT and APACHE_IP_BINDING are required on ARM64
+      - APACHE_PORT=11000
+      - APACHE_IP_BINDING=0.0.0.0
+
+      # Skip domain validation - Caddy handles reverse proxy
+      - SKIP_DOMAIN_VALIDATION=true
+
+      # Timezone
+      - TZ=Europe/Rome
+
+    volumes:
+      # Main data directory - stores all Nextcloud AIO data
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+
+      # Docker socket (required for AIO to manage containers)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - nextcloud-aio
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy-reverse-proxy
+    restart: always
+
+    ports:
+      - "80:80"       # HTTP (redirects to HTTPS)
+      - "443:443"     # HTTPS
+      - "443:443/udp" # HTTP/3
+
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+
+    networks:
+      - nextcloud-aio
+
+    depends_on:
+      - nextcloud-aio-mastercontainer
+
+networks:
+  nextcloud-aio:
+    name: nextcloud-aio
+
+volumes:
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer
+  caddy_data:
+  caddy_config:

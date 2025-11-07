@@ -6,7 +6,7 @@ Self-hosted cloud infrastructure on OCI's Always Free tier with full automation.
 
 This project is being built in public as a learn-by-doing portfolio project.
 
-**Current Phase:** Initial setup and migration
+**Current Phase:** Data migration (infrastructure complete ✅)
 
 ## 🎯 Goals
 
@@ -17,9 +17,12 @@ This project is being built in public as a learn-by-doing portfolio project.
 
 ## 📚 Stack
 
-- **Infrastructure:** Terraform + Oracle Cloud
+- **Infrastructure:** Oracle Cloud (OCI) Always Free Tier
 - **Containers:** Docker + Docker Compose
-- **Services:** Nextcloud AIO, Traefik, Portainer
+- **Services:** Nextcloud AIO (All-in-One)
+- **Reverse Proxy:** Caddy (automatic SSL with Let's Encrypt)
+- **DNS:** DuckDNS (dynamic DNS)
+- **Security:** UFW firewall + Fail2ban
 
 ## 📊 Infrastructure Details
 
