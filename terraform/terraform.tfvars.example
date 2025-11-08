@@ -1,0 +1,92 @@
+# ==============================================================================
+# Terraform Variables - Example Configuration
+# ==============================================================================
+# Copy this file to terraform.tfvars and fill in your values
+#
+# IMPORTANT: terraform.tfvars is in .gitignore - DO NOT commit it!
+#
+# cp terraform.tfvars.example terraform.tfvars
+# nano terraform.tfvars
+# ==============================================================================
+
+# ==============================================================================
+# OCI AUTHENTICATION
+# ==============================================================================
+# Get these values from OCI Console:
+# Profile → Tenancy → Copy OCID
+# Profile → User Settings → Copy OCID
+# Profile → API Keys → Add API Key → Copy Fingerprint
+
+tenancy_ocid     = "ocid1.tenancy.oc1..aaaaaaaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+user_ocid        = "ocid1.user.oc1..aaaaaaaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+fingerprint      = "aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66:77:88:99"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "eu-frankfurt-1"
+
+# ==============================================================================
+# COMPARTMENT
+# ==============================================================================
+# Use root compartment or create a dedicated one
+# Root compartment OCID = same as tenancy_ocid
+
+compartment_ocid = "ocid1.compartment.oc1..aaaaaaaXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# ==============================================================================
+# NETWORK CONFIGURATION
+# ==============================================================================
+
+vcn_cidr           = "10.0.0.0/16"
+public_subnet_cidr = "10.0.1.0/24"
+
+# ==============================================================================
+# COMPUTE CONFIGURATION (Always Free Tier)
+# ==============================================================================
+
+instance_shape     = "VM.Standard.A1.Flex"
+instance_ocpus     = 4   # Max 4 OCPU for Always Free
+instance_memory_gb = 24  # Max 24GB for 4 OCPU
+
+boot_volume_size_gb = 100  # Boot volume size
+
+# ==============================================================================
+# PERSISTENT DATA STORAGE
+# ==============================================================================
+# This volume persists across instance destroy/recreate
+# Contains: Database, files, config, backups
+
+data_volume_size_gb = 100  # Additional 100GB for data
+
+# Total storage: 100GB (boot) + 100GB (data) = 200GB
+# Free tier limit: 200GB total ✅
+
+# ==============================================================================
+# SSH CONFIGURATION
+# ==============================================================================
+
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+
+# ==============================================================================
+# APPLICATION CONFIGURATION
+# ==============================================================================
+
+app_name    = "nextcloud"
+environment = "prod"
+
+# ==============================================================================
+# DUCKDNS CONFIGURATION
+# ==============================================================================
+# Get token from: https://www.duckdns.org
+
+duckdns_domain = "your-domain"      # Without .duckdns.org
+duckdns_token  = "your-token-here"  # DuckDNS API token
+
+# ==============================================================================
+# TAGS
+# ==============================================================================
+
+tags = {
+  Project     = "Nextcloud Self-Hosted"
+  ManagedBy   = "Terraform"
+  Environment = "Production"
+  Owner       = "Your Name"
+}

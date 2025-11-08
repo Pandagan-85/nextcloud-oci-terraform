@@ -59,8 +59,8 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] Test SSL/TLS headers (HSTS, X-Frame-Options, X-Content-Type-Options)
   - [x] Audit firewall rules (UFW + OCI Security Lists)
   - [x] Check Fail2ban logs (5 IP bannati, 492 tentativi bloccati)
-- [ ] Configurazione 2FA (TOTP) - *Pianificato per setup dispositivi*
-- [ ] Setup App Passwords per dispositivi - *Pianificato domani*
+- [x] Configurazione 2FA (TOTP)
+- [x] Setup App Passwords per dispositivi
 
 ### Backup & Disaster Recovery
 - [x] Verifica backup automatici abilitati (Borg daily 04:00 UTC)
@@ -68,7 +68,8 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] **Script download backup locale** (`download-backup.sh`)
 - [x] **Script export dati leggibili** (`export-data.sh` - calendari .ics, contatti .vcf)
 - [x] **Script backup settimanale automatico** (`weekly-backup.sh`)
-- [x] **Setup cron automation** (`setup-cron.sh` - domenica 22:00)
+- [x] **Setup cron automation** (`setup-cron.sh` - domenica 22:00) ✅ **CONFIGURATO**
+- [x] **Cron job attivo** (verifica: `crontab -l`)
 - [x] Documentazione procedura disaster recovery (`docs/06-BACKUP-RESTORE.md`)
 - [ ] Test restore completo da backup - *Opzionale*
 - [ ] Test disaster recovery completo - *Opzionale*
@@ -88,17 +89,36 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-## ⏳ FASE 3: AUTOMATION & IaC - PIANIFICATA
+## 🔄 FASE 3: AUTOMATION & IaC - IN CORSO
 
 ### Terraform Infrastructure as Code
-- [ ] Setup Terraform OCI provider
-- [ ] Configurazione variabili e secrets
-- [ ] Modulo creazione VCN e networking
-- [ ] Modulo creazione compute instance
-- [ ] Modulo security lists e firewall
-- [ ] Modulo storage e volumes
-- [ ] Output e data sources
-- [ ] Testing e validazione Terraform
+- [x] **Setup Terraform OCI provider** (`terraform/provider.tf`)
+- [x] **Configurazione variabili** (`terraform/variables.tf`)
+- [x] **Modulo creazione VCN e networking** (`terraform/network.tf`)
+  - [x] VCN, Internet Gateway, Route Table
+  - [x] Public Subnet
+  - [x] Security Lists (SSH, HTTP, HTTPS, 8080, 8443)
+- [x] **Modulo creazione compute instance** (`terraform/compute.tf`)
+  - [x] Ubuntu 24.04 ARM (A1.Flex)
+  - [x] Cloud-init bootstrap script
+  - [x] Configurazione shape (4 OCPU, 24GB RAM)
+- [x] **Modulo storage con persistent volume** (`terraform/storage.tf`)
+  - [x] Block Volume separato (100GB)
+  - [x] `prevent_destroy = true` per protezione dati
+  - [x] Volume attachment automatico
+- [x] **Output e informazioni** (`terraform/outputs.tf`)
+  - [x] Instance info, IPs, URLs
+  - [x] SSH command, cost estimate
+- [x] **Cloud-init automation** (`terraform/cloud-init.yaml`)
+  - [x] Docker installation
+  - [x] Persistent storage mount
+  - [x] UFW + Fail2ban setup
+  - [x] DuckDNS update
+- [x] **Template variabili** (`terraform/terraform.tfvars.example`)
+- [x] **Documentazione Terraform** (`terraform/README.md`)
+- [ ] **Testing su istanza separata** - *Prossimo step*
+- [ ] **Terraform import risorse esistenti** (opzionale)
+- [ ] **Validazione e deployment** - *Da fare*
 
 ### Configuration Management
 - [ ] Ansible playbook per system setup (opzionale)
@@ -162,7 +182,8 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [ ] Monitoring base attivo - *FASE 4*
 
 ### Portfolio Ready
-- [ ] Terraform funzionante e testato
+- [x] Terraform struttura completa (IaC pattern production-grade)
+- [ ] Terraform testato su deployment reale
 - [ ] CI/CD pipeline attiva
 - [ ] Monitoring avanzato
 - [ ] Demo/screenshots
@@ -177,34 +198,62 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ## 🎯 Next Immediate Actions
 
-### Oggi/Domani
-1. **⚠️ CONFIGURARE CRON BACKUP** ⏱️ 2 min
-   ```bash
-   ./scripts/setup-cron.sh
-   ```
-   Verifica con: `crontab -l`
+### ✅ Completato Oggi (8 Nov 2025)
+1. ✅ **Configurato cron backup** - Backup automatici ogni domenica 22:00
+2. ✅ **2FA abilitato** - TOTP configurato
+3. ✅ **App Passwords create** - Dispositivi protetti
+4. ✅ **Terraform struttura preparata** - IaC con storage separato pronto
 
-2. **Test Nextcloud Desktop Client su Fedora** ⏱️ 15 min
-   ```bash
-   sudo dnf install nextcloud-client
-   ```
+### Prossimi Step (Questa settimana)
 
-3. **Setup dispositivi mobili (iPad/iPhone)** ⏱️ 20 min
-   - Configurare CalDAV/CardDAV
-   - Abilitare 2FA
-   - Creare App Passwords
+**📋 IMPORTANTE: Seguire piano dettagliato in `TERRAFORM-MIGRATION-PLAN.md`**
 
-4. **Test sincronizzazione completa** ⏱️ 10 min
-
-5. **Verifica primo backup automatico** (domenica 22:00)
+1. **Domenica 10 Nov - Verifica primo backup automatico** ⏱️ 5 min
    ```bash
    tail -f /tmp/nextcloud-backup.log
+   ls -lh ~/nextcloud-backups/
+   ls -lh ~/nextcloud-exports/latest/
    ```
 
-### Prossime Settimane (FASE 3)
-5. **Terraform automation** - Infrastructure as Code
-6. **CI/CD pipeline** - GitHub Actions
-7. **Monitoring** - Prometheus + Grafana (FASE 4)
+2. **Settimana 1 (9-15 Nov): Test Terraform** ⏱️ 2-3 ore
+   - [ ] Raccogliere credenziali OCI (tenancy OCID, user OCID, fingerprint)
+   - [ ] Compilare `terraform/terraform.tfvars`
+   - [ ] Backup completo manuale pre-test
+   - [ ] `terraform init && terraform plan`
+   - [ ] Deploy test instance (nome diverso da prod!)
+   - [ ] **Test critico: destroy/recreate per verificare data persistence**
+   - [ ] Documentare risultati in `terraform/TEST-RESULTS.md`
+   - [ ] Cleanup test instance
+
+   **Guida**: `TERRAFORM-MIGRATION-PLAN.md` - Fase 1
+
+3. **Test sincronizzazione dispositivi** ⏱️ 20 min
+   - Verificare CalDAV/CardDAV funzionanti
+   - Test modifiche calendari e contatti
+   - Verificare 2FA e App Passwords su tutti dispositivi
+
+### Prossime Settimane (FASE 3 completamento)
+
+4. **Settimana 2 (16-22 Nov): Migrazione Produzione** ⏱️ 3-4 ore totali (spalmato su 7 giorni)
+   - [ ] Backup completo finale pre-migrazione
+   - [ ] Deploy nuova istanza produzione con Terraform
+   - [ ] Upload backup Borg alla nuova
+   - [ ] Restore da backup via AIO interface
+   - [ ] Test completo (login, dati, 1 dispositivo)
+   - [ ] **Switch DNS** (downtime 10-15 min)
+   - [ ] Monitor stabilità 3-7 giorni
+   - [ ] Destroy vecchia istanza
+   - [ ] Update docs con risultati reali
+
+   **Guida Completa**: `TERRAFORM-MIGRATION-PLAN.md` - Fase 2
+
+5. **Post-Migrazione: Portfolio Finalization** ⏱️ 2-3 ore
+   - Screenshots infrastruttura
+   - Documentare disaster recovery testato
+   - README update con deployment reale
+
+6. **[Opzionale] CI/CD pipeline** - GitHub Actions
+7. **[FASE 4] Monitoring** - Prometheus + Grafana
 
 ---
 

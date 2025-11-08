@@ -1,10 +1,29 @@
 # Terraform
 *.tfstate
+*.tfstate.*
 *.tfstate.backup
 .terraform/
 .terraform.lock.hcl
+
+# Terraform Variables (SECRETS!)
 terraform.tfvars
 *.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform Plans
+*.tfplan
+*.tfplan.*
+
+# Terraform Crash Logs
+crash.log
+crash.*.log
+
+# Terraform CLI Config
+.terraformrc
+terraform.rc
 
 # Secrets
 .env
@@ -37,4 +56,7 @@ Thumbs.db
 tmp/
 temp/
 
+# Internal Notes (private, not for public repo)
 CLAUDE_PROJECT_BRIEF.md
+START-HERE.md
+TERRAFORM-MIGRATION-PLAN.md
