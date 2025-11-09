@@ -7,6 +7,8 @@
 
 # Terraform Variables (SECRETS!)
 terraform.tfvars
+test.tfvars
+prod.tfvars
 *.auto.tfvars
 override.tf
 override.tf.json

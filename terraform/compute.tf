@@ -86,9 +86,4 @@ resource "oci_core_instance" "nextcloud" {
       Role = "application-server"
     }
   )
-
-  # Wait for data volume attachment before completing
-  depends_on = [
-    oci_core_volume_attachment.nextcloud_data
-  ]
 }
