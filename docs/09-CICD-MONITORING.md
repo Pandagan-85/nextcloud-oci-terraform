@@ -1,10 +1,10 @@
 # CI/CD & Monitoring Setup
 
-**Fase 4 del progetto** - Automazione deployment e observability
+**Fase 3 del progetto** - Automazione deployment e observability
 
-**Status**: 📋 PIANIFICATO
+**Status**: 🚀 CI/CD COMPLETATO | 📋 Monitoring IN PIANIFICAZIONE
 
-**Prerequisiti**: Fase 3 completata (Terraform Infrastructure as Code)
+**Prerequisiti**: Terraform Infrastructure as Code completata ✅
 
 ---
 
@@ -17,88 +17,182 @@
 
 ---
 
-## 📦 PARTE 1: CI/CD con GitHub Actions
+## 📦 PARTE 1: CI/CD con GitHub Actions ✅
 
-### Setup GitHub Actions Workflow
+### ✨ Workflows Implementati
 
-**File**: `.github/workflows/terraform.yml`
+Il progetto include **5 workflow GitHub Actions** completamente funzionanti:
 
-#### Features da implementare:
+#### 1. **Terraform Validation** (`.github/workflows/terraform-validation.yml`)
 
-1. **Terraform Plan on PR**
-   - Trigger su ogni Pull Request
-   - `terraform fmt -check`
-   - `terraform validate`
-   - `terraform plan` e post comment su PR
+**Trigger:**
+- Pull Request su `terraform/**`
+- Push su `main` branch
 
-2. **Terraform Apply on Merge**
-   - Trigger su merge to main
-   - `terraform apply -auto-approve`
-   - Solo se plan è valido
+**Azioni:**
+- ✅ Format check (`terraform fmt -check -recursive`)
+- ✅ Initialization (`terraform init -backend=false`)
+- ✅ Validation (`terraform validate`)
+- ✅ Auto-comment on PR se fails
 
-3. **Security Scanning**
-   - Checkov per Terraform security
-   - SAST per script bash
-   - Dependency scanning
+**Test locale:**
+```bash
+cd terraform
+terraform fmt -check -recursive
+terraform init -backend=false
+terraform validate
+```
 
-4. **Testing**
-   - Syntax validation
-   - Cloud-init YAML validation
-   - Terraform module testing
+#### 2. **Security Scanning** (`.github/workflows/security-scan.yml`)
 
-### Secrets da configurare in GitHub
+**Trigger:**
+- Pull Request
+- Push su `main`
+- Schedule settimanale (lunedì 9:00 UTC)
+
+**Scanner integrati:**
+- ✅ **tfsec**: Terraform security best practices
+- ✅ **Trivy**: Infrastructure as Code vulnerability scanner
+- ✅ **ShellCheck**: Bash script linting
+- ✅ **Gitleaks**: Secret detection in code
+
+**Risultati:** Caricati automaticamente in GitHub Security tab
+
+**Test locale:**
+```bash
+# Install tools
+brew install tfsec trivy shellcheck gitleaks
+
+# Run scans
+tfsec terraform/
+trivy config .
+shellcheck scripts/*.sh
+gitleaks detect --source . --verbose
+```
+
+#### 3. **Documentation Checks** (`.github/workflows/documentation.yml`)
+
+**Trigger:**
+- Pull Request su `*.md` o `docs/**`
+- Push su `main`
+
+**Verifiche:**
+- ✅ Markdown linting (markdownlint)
+- ✅ Link validation (no broken links)
+- ✅ Terraform docs generation check
+- ✅ Spell checking
+
+**Test locale:**
+```bash
+npm install -g markdownlint-cli2
+markdownlint-cli2 "**/*.md"
+```
+
+#### 4. **Pull Request Checks** (`.github/workflows/pr-checks.yml`)
+
+**Automazioni su ogni PR:**
+- ✅ Mostra informazioni PR
+- ✅ Auto-labeling basato su file modificati
+- ✅ Size labels (XS, S, M, L, XL)
+- ✅ Conventional Commits validation
+
+**Labels automatiche:**
+- `terraform` - per modifiche in `terraform/**`
+- `docker` - per modifiche in `docker/**`
+- `scripts` - per modifiche in `scripts/**`
+- `documentation` - per modifiche `.md` o `docs/**`
+- `ci-cd` - per modifiche `.github/**`
+- `security` - per modifiche relative a sicurezza
+
+### 🔧 Setup GitHub Actions
+
+I workflow sono già pronti! Basta pushare il codice su GitHub.
+
+#### Secrets Opzionali
+
+I workflow **NON richiedono secrets** per funzionare. Sono opzionali solo per:
 
 ```yaml
 # Repository Settings → Secrets → Actions
-OCI_TENANCY_OCID: "ocid1.tenancy..."
-OCI_USER_OCID: "ocid1.user..."
-OCI_FINGERPRINT: "aa:bb:cc..."
-OCI_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----..."
-OCI_REGION: "eu-frankfurt-1"
-DUCKDNS_TOKEN: "your-token"
-OCI_COMPARTMENT_OCID: "ocid1.compartment..."
+GITLEAKS_LICENSE: "optional-for-pro-features"
 ```
 
-### Workflow Example Structure
+**Nota:** Nessun secret OCI necessario perché i workflow NON eseguono `terraform apply` automatico (solo validazione).
 
-```yaml
-name: 'Terraform CI/CD'
+### 🛡️ Branch Protection (Raccomandato)
 
-on:
-  pull_request:
-    paths:
-      - 'terraform/**'
-  push:
-    branches:
-      - main
-    paths:
-      - 'terraform/**'
+Proteggi il branch `main` richiedendo check prima del merge:
 
-jobs:
-  terraform-plan:
-    name: 'Terraform Plan'
-    runs-on: ubuntu-latest
-    # Steps: checkout, setup terraform, init, plan
+1. **Settings → Branches → Add rule** per `main`
+2. Abilita:
+   - ☑ Require a pull request before merging
+   - ☑ Require status checks to pass:
+     - `Terraform Format and Validate`
+     - `Terraform Security Scan (tfsec)`
+     - `ShellCheck (Scripts)`
+   - ☑ Require conversation resolution
 
-  terraform-apply:
-    name: 'Terraform Apply'
-    if: github.ref == 'refs/heads/main'
-    needs: terraform-plan
-    # Steps: apply only on main branch
+### 📊 Status Badges
 
-  security-scan:
-    name: 'Security Scanning'
-    runs-on: ubuntu-latest
-    # Steps: checkov, tfsec, etc.
+Aggiungi badges al README:
+
+```markdown
+![Terraform](https://github.com/YOUR_USERNAME/nextcloud-oci-terraform/actions/workflows/terraform-validation.yml/badge.svg)
+![Security](https://github.com/YOUR_USERNAME/nextcloud-oci-terraform/actions/workflows/security-scan.yml/badge.svg)
+![Docs](https://github.com/YOUR_USERNAME/nextcloud-oci-terraform/actions/workflows/documentation.yml/badge.svg)
 ```
 
-### Considerazioni Importanti
+### 🎯 Contributing Workflow
 
-⚠️ **Automation Limits per Nextcloud AIO**:
-- Terraform può creare/distruggere infrastruttura
-- **NON può** restorare dati automaticamente
-- Setup AIO iniziale e restore richiedono intervento manuale
-- Pensato per disaster recovery, non deploy frequenti
+**Come contribuire al progetto:**
+
+1. **Fork e clone**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/nextcloud-oci-terraform.git
+   cd nextcloud-oci-terraform
+   ```
+
+2. **Crea branch**
+   ```bash
+   git checkout -b feat/my-feature
+   ```
+
+3. **Commit con Conventional Commits**
+   ```bash
+   git commit -m "feat(terraform): add custom CIDR support
+
+   - Allow custom VCN CIDR configuration
+   - Add validation for CIDR format
+   - Update documentation
+
+   Closes #123"
+   ```
+
+4. **Push e crea PR**
+   ```bash
+   git push origin feat/my-feature
+   ```
+   - I workflow si attivano automaticamente
+   - Correggi eventuali errori
+   - Aspetta review
+
+5. **Merge** ✅
+
+Vedi `CONTRIBUTING.md` per dettagli completi.
+
+### ⚠️ Considerazioni Importanti
+
+**Design Philosophy:**
+- I workflow **validano** il codice (format, security, docs)
+- **NON eseguono** `terraform apply` automatico
+- Il deploy rimane **manuale e controllato**
+- Focus su **qualità del codice** e **sicurezza**
+
+**Perché non auto-deploy?**
+- Nextcloud AIO richiede setup manuale iniziale
+- Restore da backup necessita intervento umano
+- Free tier OCI ha limiti di risorse
+- Deploy frequenti non necessari per self-hosting
 
 ---
 
@@ -350,13 +444,16 @@ receivers:
 
 ## 📝 Implementation Checklist
 
-### CI/CD Pipeline
-- [ ] Create `.github/workflows/terraform.yml`
-- [ ] Configure GitHub Secrets
-- [ ] Test PR workflow
-- [ ] Test merge workflow
-- [ ] Add security scanning
-- [ ] Document pipeline in README
+### CI/CD Pipeline ✅
+- [x] Create `.github/workflows/terraform-validation.yml`
+- [x] Create `.github/workflows/security-scan.yml`
+- [x] Create `.github/workflows/documentation.yml`
+- [x] Create `.github/workflows/pr-checks.yml`
+- [x] Add PR template
+- [x] Add CONTRIBUTING.md guide
+- [x] Document pipeline in docs/09-CICD-MONITORING.md
+- [ ] Test workflows on real PR (dopo push su GitHub)
+- [ ] Configure branch protection rules
 
 ### Monitoring Stack
 - [ ] Add exporters to docker-compose.yml
@@ -412,10 +509,13 @@ receivers:
 
 ---
 
-**Next Steps**: Dopo completamento Fase 4, il progetto sarà **Portfolio-Ready** con:
-- ✅ Infrastructure as Code completa
-- ✅ CI/CD automation
-- ✅ Monitoring e observability
-- ✅ Disaster recovery testato
-- ✅ Production-grade security
+**Status Attuale**:
+- ✅ Infrastructure as Code completa (Terraform)
+- ✅ CI/CD automation (GitHub Actions)
+- ✅ Automated backup system (Borg + exports)
+- ✅ Production-grade security (Firewall, Fail2ban, SSL)
+- ✅ Pets vs Cattle pattern (persistent storage)
+- 🚧 Monitoring e observability (In pianificazione)
+
+**Next Step**: Implementare Prometheus + Grafana per monitoring completo
 

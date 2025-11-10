@@ -1,0 +1,30 @@
+# Auto-label PRs based on changed files
+
+terraform:
+  - changed-files:
+    - any-glob-to-any-file: 'terraform/**/*'
+
+docker:
+  - changed-files:
+    - any-glob-to-any-file: 'docker/**/*'
+
+scripts:
+  - changed-files:
+    - any-glob-to-any-file: 'scripts/**/*'
+
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**/*'
+
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: '.github/**/*'
+
+security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/security*'
+      - '**/firewall*'
+      - '**/*secret*'
