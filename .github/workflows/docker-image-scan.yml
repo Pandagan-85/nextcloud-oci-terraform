@@ -1,0 +1,127 @@
+name: Docker Image Security Scan
+
+on:
+  pull_request:
+    paths:
+      - 'docker/docker-compose.yml'
+      - '.github/workflows/docker-image-scan.yml'
+  push:
+    branches:
+      - main
+  schedule:
+    # Run weekly on Wednesday at 3:00 UTC
+    - cron: '0 3 * * 3'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  scan-images:
+    name: Scan Docker Images for Vulnerabilities
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        image:
+          - name: nextcloud-aio
+            full: nextcloud/all-in-one:latest
+          - name: caddy
+            full: caddy:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Pull Docker image
+        run: docker pull ${{ matrix.image.full }}
+
+      - name: Run Trivy vulnerability scanner on ${{ matrix.image.name }}
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.image.full }}
+          format: 'sarif'
+          output: 'trivy-${{ matrix.image.name }}-results.sarif'
+          severity: 'MEDIUM,HIGH,CRITICAL'
+          exit-code: '0'  # Don't fail on vulnerabilities, just report
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-${{ matrix.image.name }}-results.sarif'
+          category: 'trivy-${{ matrix.image.name }}'
+
+      - name: Run Trivy vulnerability scanner (table format)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ matrix.image.full }}
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '0'
+
+  check-image-updates:
+    name: Check for Image Updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Nextcloud AIO latest version
+        run: |
+          echo "🔍 Checking Nextcloud AIO image..."
+          docker pull nextcloud/all-in-one:latest
+          DIGEST=$(docker inspect nextcloud/all-in-one:latest --format='{{.RepoDigests}}')
+          echo "Current digest: $DIGEST"
+          echo "✅ Using latest Nextcloud AIO image"
+
+      - name: Check Caddy latest version
+        run: |
+          echo "🔍 Checking Caddy image..."
+          docker pull caddy:latest
+          DIGEST=$(docker inspect caddy:latest --format='{{.RepoDigests}}')
+          echo "Current digest: $DIGEST"
+          echo "✅ Using latest Caddy image"
+
+      - name: Summary
+        run: |
+          echo ""
+          echo "📦 Docker Images Status:"
+          echo "========================"
+          echo "✅ All images are using :latest tags"
+          echo "✅ Images successfully pulled"
+          echo ""
+          echo "💡 Note: Consider using digest pinning for production:"
+          echo "   nextcloud/all-in-one@sha256:..."
+          echo "   caddy@sha256:..."
+
+  test-compose:
+    name: Test Docker Compose Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: |
+          cd docker
+          docker compose config --quiet
+          echo "✅ docker-compose.yml is valid"
+
+      - name: Check for deprecated syntax
+        run: |
+          cd docker
+          if grep -q "version:" docker-compose.yml; then
+            echo "⚠️  Warning: 'version' field is deprecated in Docker Compose v2"
+          else
+            echo "✅ No deprecated syntax found"
+          fi
+
+      - name: Pull all images (no start)
+        run: |
+          cd docker
+          # Create dummy Caddyfile for testing
+          echo "localhost { respond 'OK' }" > Caddyfile
+
+          # Pull images without starting containers
+          docker compose pull
+          echo "✅ All images pulled successfully"

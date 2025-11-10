@@ -45,6 +45,26 @@ This project aims to provide a **production-ready, fully automated, and reusable
    # Edit terraform.tfvars with your values
    ```
 
+4. **Install Pre-commit Hooks** (Recommended)
+
+   Pre-commit hooks automatically format and check your code before committing, preventing CI/CD failures:
+
+   ```bash
+   ./scripts/setup-precommit.sh
+   ```
+
+   This will automatically:
+   - Format Terraform files (`terraform fmt`)
+   - Lint shell scripts (`shellcheck`)
+   - Fix markdown formatting (`markdownlint`)
+   - Check YAML syntax
+   - Detect hardcoded secrets (`gitleaks`)
+   - Fix trailing whitespace and line endings
+
+   **Manual run:** `pre-commit run --all-files`
+
+   **Skip hooks (not recommended):** `git commit --no-verify`
+
 ## 📝 Contribution Guidelines
 
 ### Code Style
