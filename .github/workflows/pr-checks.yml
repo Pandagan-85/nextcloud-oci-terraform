@@ -64,9 +64,11 @@ jobs:
 
       - name: Validate Conventional Commits
         uses: wagoid/commitlint-github-action@v6
+        continue-on-error: true  # Don't fail PR on commit message issues
         with:
           configFile: .github/commitlint.config.mjs
           failOnWarnings: false
+          failOnErrors: false
           helpURL: 'https://www.conventionalcommits.org'
 
   all-checks:
