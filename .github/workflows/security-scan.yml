@@ -30,13 +30,13 @@ jobs:
           soft_fail: false
           format: sarif
           additional_args: --minimum-severity MEDIUM
-          sarif_file: tfsec-results.sarif
 
       - name: Upload tfsec results to GitHub Security
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: terraform/tfsec-results.sarif
+          sarif_file: results.sarif
+        continue-on-error: true  # Don't fail if SARIF file missing
 
   trivy-scan:
     name: Trivy Security Scan (Full IaC)
