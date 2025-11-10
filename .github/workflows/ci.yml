@@ -64,11 +64,7 @@ jobs:
       - name: Markdown Lint
         uses: DavidAnson/markdownlint-cli2-action@v18
         with:
-          globs: |
-            **/*.md
-            !.terraform/**
-            !node_modules/**
-            !.git/**
+          globs: '**/*.md'
 
       # ShellCheck
       - name: ShellCheck

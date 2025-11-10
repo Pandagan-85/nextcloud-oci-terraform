@@ -53,6 +53,7 @@ repos:
         name: Markdown Lint
         description: Lint and auto-fix markdown files
         args: ['--fix']
+        exclude: '^\.terraform/|^node_modules/|^\.git/'
 
   # Generic file checks
   - repo: https://github.com/pre-commit/pre-commit-hooks

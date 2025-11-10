@@ -1,0 +1,12 @@
+# Ignore Terraform provider dependencies
+.terraform/
+
+# Ignore Node.js dependencies
+node_modules/
+
+# Ignore Git directory
+.git/
+
+# Ignore build artifacts
+dist/
+build/
