@@ -22,8 +22,8 @@ services:
     restart: always
 
     ports:
-      - "8080:8080"     # AIO interface
-      - "8443:8443"     # HTTPS AIO interface
+      - "8080:8080" # AIO interface
+      - "8443:8443" # HTTPS AIO interface
 
     environment:
       # APACHE_PORT and APACHE_IP_BINDING are required on ARM64
@@ -64,8 +64,8 @@ services:
     restart: always
 
     ports:
-      - "80:80"       # HTTP (redirects to HTTPS)
-      - "443:443"     # HTTPS
+      - "80:80" # HTTP (redirects to HTTPS)
+      - "443:443" # HTTPS
       - "443:443/udp" # HTTP/3
 
     volumes:
@@ -89,14 +89,14 @@ services:
     container_name: prometheus
     restart: always
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
 
     ports:
-      - "127.0.0.1:9090:9090"  # Bind only to localhost
+      - "127.0.0.1:9090:9090" # Bind only to localhost
 
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro,z
@@ -118,7 +118,7 @@ services:
       - GF_INSTALL_PLUGINS=
 
     ports:
-      - "127.0.0.1:3000:3000"  # Bind only to localhost (Caddy will proxy)
+      - "127.0.0.1:3000:3000" # Bind only to localhost (Caddy will proxy)
 
     volumes:
       - grafana_data:/var/lib/grafana
@@ -135,13 +135,13 @@ services:
     container_name: node-exporter
     restart: always
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - '--path.rootfs=/host'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.sysfs=/host/sys"
+      - "--path.rootfs=/host"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
 
     ports:
-      - "127.0.0.1:9100:9100"  # Bind only to localhost
+      - "127.0.0.1:9100:9100" # Bind only to localhost
 
     volumes:
       - /proc:/host/proc:ro
@@ -155,10 +155,13 @@ services:
     image: gcr.io/cadvisor/cadvisor:latest
     container_name: cadvisor
     restart: always
-    privileged: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
     ports:
-      - "127.0.0.1:8081:8080"  # Bind only to localhost
+      - "127.0.0.1:8081:8080" # Bind only to localhost
 
     volumes:
       - /:/rootfs:ro
