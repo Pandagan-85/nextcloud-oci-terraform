@@ -62,9 +62,11 @@ jobs:
 
       # Markdown validation
       - name: Markdown Lint
-        uses: DavidAnson/markdownlint-cli2-action@v18
-        with:
-          globs: '**/*.md'
+        run: |
+          FILES=$(find . -name "*.md" -not -path "*/\.terraform/*" -not -path "*/node_modules/*" -not -path "*/.git/*")
+          if [ -n "$FILES" ]; then
+            echo "$FILES" | xargs npx markdownlint-cli2
+          fi
 
       # ShellCheck
       - name: ShellCheck
