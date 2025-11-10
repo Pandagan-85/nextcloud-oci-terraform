@@ -137,17 +137,52 @@ runcmd:
     EOF
 
   # ===========================================================================
-  # NEXTCLOUD PREPARATION
+  # REPOSITORY CLONE & NEXTCLOUD PREPARATION
   # ===========================================================================
 
-  - echo "=== Preparing Nextcloud directories ==="
+  - echo "=== Cloning Nextcloud configuration repository ==="
 
-  # Create nextcloud directory in ubuntu home
+  # Clone the repository with all configuration files
+  - cd /home/ubuntu
+  - git clone https://github.com/Pandagan-85/nextcloud-oci-terraform.git repo-temp
+
+  # Create nextcloud directory and copy files
   - mkdir -p /home/ubuntu/nextcloud
+  - cp repo-temp/docker/docker-compose.yml /home/ubuntu/nextcloud/
+  - cp repo-temp/docker/Caddyfile.template /home/ubuntu/nextcloud/Caddyfile || cp repo-temp/docker/Caddyfile /home/ubuntu/nextcloud/
+  - cp -r repo-temp/docker/monitoring /home/ubuntu/nextcloud/ 2>/dev/null || true
+  # Generate Caddyfile with correct domain (replace YOUR_DOMAIN placeholder)
+  - sed -i "s/YOUR_DOMAIN/${duckdns_domain}/g" /home/ubuntu/nextcloud/Caddyfile
 
-  # Fix ownership for files created in write_files (ubuntu user exists now)
+  # Fix ownership
   - chown ubuntu:ubuntu /home/ubuntu/system-info.sh
   - chown -R ubuntu:ubuntu /home/ubuntu/nextcloud
+
+  # Cleanup temp repo
+  - rm -rf /home/ubuntu/repo-temp
+
+  # Create .env file with instructions (secrets must be set manually)
+  - |
+    cat > /home/ubuntu/nextcloud/.env <<'ENVEOF'
+    # ==============================================================================
+    # NEXTCLOUD + MONITORING ENVIRONMENT VARIABLES
+    # ==============================================================================
+    #
+    # IMPORTANT: Set these passwords manually after first boot!
+    #
+    # To set Grafana password:
+    #   GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)
+    #   echo "GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD" >> /home/ubuntu/nextcloud/.env
+    #
+    # Grafana will be accessible at: https://monitoring.${duckdns_domain}.duckdns.org
+    # Default username: admin
+    #
+    # ==============================================================================
+
+    # GRAFANA_ADMIN_PASSWORD=CHANGEME-RUN-COMMAND-ABOVE
+    ENVEOF
+
+  - chown ubuntu:ubuntu /home/ubuntu/nextcloud/.env
 
   # ===========================================================================
   # UNATTENDED UPGRADES
@@ -210,106 +245,82 @@ write_files:
       echo "Data Volume: $(df -h /mnt/nextcloud-data | tail -1)"
       echo "==========================="
 
-  # Nextcloud AIO + Caddy docker-compose.yml
-  - path: /home/ubuntu/nextcloud/docker-compose.yml
+  # Setup reminder for post-deployment configuration
+  - path: /home/ubuntu/SETUP-NEXTCLOUD.txt
     permissions: "0644"
     content: |
-      services:
-        nextcloud-aio-mastercontainer:
-          image: nextcloud/all-in-one:latest
-          container_name: nextcloud-aio-mastercontainer
-          restart: always
-          ports:
-            - "8080:8080"
-            - "8443:8443"
-          environment:
-            - APACHE_PORT=11000
-            - APACHE_IP_BINDING=0.0.0.0
-            - SKIP_DOMAIN_VALIDATION=true
-            - TZ=UTC
-            - NEXTCLOUD_DATADIR=/mnt/nextcloud-data/nextcloud-data
-            - BORG_BACKUP_HOST_LOCATION=/mnt/nextcloud-data/borg-backups
-          volumes:
-            - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
-            - /var/run/docker.sock:/var/run/docker.sock:ro
-            - /mnt/nextcloud-data:/mnt/nextcloud-data:rw
-          networks:
-            - nextcloud-aio
+      ================================================================
+      🎉 Nextcloud Infrastructure Deployed Successfully!
+      ================================================================
 
-        caddy:
-          image: caddy:latest
-          container_name: caddy-reverse-proxy
-          restart: always
-          ports:
-            - "80:80"
-            - "443:443"
-            - "443:443/udp"
-          volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile
-            - caddy_data:/data
-            - caddy_config:/config
-          networks:
-            - nextcloud-aio
-          depends_on:
-            - nextcloud-aio-mastercontainer
+      ⚠️  IMPORTANT: Manual Configuration Required
 
-      networks:
-        nextcloud-aio:
-          name: nextcloud-aio
+      1. Set Grafana Admin Password:
+         cd /home/ubuntu/nextcloud
+         GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)
+         echo "GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD" >> .env
+         echo "Your Grafana password: $GRAFANA_ADMIN_PASSWORD"
 
-      volumes:
-        nextcloud_aio_mastercontainer:
-          name: nextcloud_aio_mastercontainer
-        caddy_data:
-        caddy_config:
+      2. Restart Grafana to apply password:
+         docker compose restart grafana
 
-  # Caddyfile for reverse proxy
-  - path: /home/ubuntu/nextcloud/Caddyfile
-    permissions: "0644"
-    content: |
-      ${duckdns_domain}.duckdns.org {
-          reverse_proxy nextcloud-aio-apache:11000
+      3. Access Services:
+         - Nextcloud AIO Setup: https://${duckdns_domain}.duckdns.org:8080
+         - Nextcloud (after AIO setup): https://${duckdns_domain}.duckdns.org
+         - Grafana Monitoring: https://monitoring.${duckdns_domain}.duckdns.org
+           Username: admin
+           Password: (from step 1)
 
-          header {
-              Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-              X-Frame-Options "SAMEORIGIN"
-              X-Content-Type-Options "nosniff"
-              X-XSS-Protection "1; mode=block"
-              Referrer-Policy "no-referrer"
-          }
+      4. Nextcloud Initial Setup:
+         - Access AIO interface on port 8080
+         - Complete setup wizard
+         - Configure which containers to run (Talk, Collabora, etc.)
+         - Set admin password
 
-          encode gzip
+      5. Monitoring Dashboards (Grafana):
+         - Import Dashboard ID 179: Docker Container Metrics
+         - Import Dashboard ID 11074: Node Exporter System Metrics
 
-          log {
-              output file /data/access.log
-              level INFO
-          }
-      }
+      📂 All configuration files: /home/ubuntu/nextcloud/
+      📊 Monitoring stack: Prometheus + Grafana + cAdvisor + Node Exporter
+      💾 Persistent data: /mnt/nextcloud-data/
+
+      ================================================================
 
 # Final message
 final_message: |
   ================================================================
-  Nextcloud instance is FULLY AUTOMATED and ready!
+  🚀 Nextcloud Infrastructure Successfully Deployed!
+  ================================================================
 
   Instance: ${app_name}
   Domain: ${duckdns_domain}.duckdns.org
 
   ✅ Docker installed and configured
   ✅ Persistent storage mounted (/mnt/nextcloud-data)
-  ✅ Nextcloud AIO deployed automatically
+  ✅ Nextcloud AIO deployed (with monitoring stack!)
   ✅ Caddy reverse proxy configured
+  ✅ Prometheus + Grafana monitoring ready
   ✅ Firewall (UFW) enabled
   ✅ Fail2ban active
 
-  Access AIO interface:
-  - https://<public-ip>:8080
+  📋 NEXT STEPS (Manual Configuration Required):
 
-  Access Nextcloud (after AIO setup):
-  - https://${duckdns_domain}.duckdns.org
+  Read detailed instructions:
+  cat /home/ubuntu/SETUP-NEXTCLOUD.txt
 
-  SSH: ssh ubuntu@<public-ip>
+  Quick Start:
+  1. SSH: ssh ubuntu@<public-ip>
+  2. Set Grafana password (see SETUP-NEXTCLOUD.txt)
+  3. Access Nextcloud AIO: https://<public-ip>:8080
+  4. Complete Nextcloud setup wizard
 
-  All data persisted on: /mnt/nextcloud-data
+  Access URLs:
+  - Nextcloud (after setup): https://${duckdns_domain}.duckdns.org
+  - Grafana Monitoring: https://monitoring.${duckdns_domain}.duckdns.org
 
-  This instance is 100% Infrastructure as Code! 🚀
+  All data persisted: /mnt/nextcloud-data
+  Configuration from: GitHub repo (always up-to-date!)
+
+  This instance is 100% Infrastructure as Code! 🎉
   ================================================================

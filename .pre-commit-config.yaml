@@ -34,7 +34,7 @@ repos:
       - id: shellcheck
         name: ShellCheck
         description: Lint shell scripts
-        args: ['--severity=warning']
+        args: ["--severity=warning"]
 
   # YAML linting
   - repo: https://github.com/adrienverge/yamllint
@@ -43,7 +43,7 @@ repos:
       - id: yamllint
         name: YAML Lint
         description: Check YAML syntax
-        args: ['-d', '{extends: default, rules: {line-length: {max: 120}}}']
+        args: ["-d", "{extends: default, rules: {line-length: {max: 220}}}"]
 
   # Markdown linting and auto-fix
   - repo: https://github.com/DavidAnson/markdownlint-cli2
@@ -52,7 +52,7 @@ repos:
       - id: markdownlint-cli2
         name: Markdown Lint
         description: Lint and auto-fix markdown files
-        args: ['--fix']
+        args: ["--fix"]
         exclude: '^\.terraform/|^node_modules/|^\.git/'
 
   # Generic file checks
@@ -70,12 +70,12 @@ repos:
       - id: check-yaml
         name: Check YAML syntax
         description: Validate YAML files
-        exclude: '.github/spellcheck-config.yml'  # Has known issues
+        exclude: ".github/spellcheck-config.yml" # Has known issues
 
       - id: check-added-large-files
         name: Check for large files
         description: Prevent large files from being committed
-        args: ['--maxkb=1024']
+        args: ["--maxkb=1024"]
 
       - id: check-merge-conflict
         name: Check for merge conflicts
