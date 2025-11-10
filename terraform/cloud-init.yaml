@@ -4,8 +4,8 @@
 # Runs on first boot to setup system, Docker, and mount persistent storage
 #
 
-# Set timezone
-timezone: Europe/Rome
+# Set timezone (UTC is recommended for servers)
+timezone: UTC
 
 # System updates
 package_update: true
@@ -108,29 +108,26 @@ runcmd:
   # Add to fstab for persistence
   - echo "LABEL=nextcloud-data /mnt/nextcloud-data ext4 defaults,nofail 0 2" >> /etc/fstab
 
-  # Set ownership
-  - chown -R ubuntu:ubuntu /mnt/nextcloud-data
-
   # ===========================================================================
-  # DOCKER VOLUMES SETUP
+  # PERSISTENT STORAGE FOR BACKUPS
   # ===========================================================================
 
-  - echo "=== Setting up Docker volume directories ==="
+  - echo "=== Setting up persistent storage for backups ==="
 
-  # Stop Docker to move default volume location
-  - systemctl stop docker
-
-  # Create directories on persistent storage
-  - mkdir -p /mnt/nextcloud-data/docker-volumes
+  # Create directories on persistent volume (150GB)
+  # - nextcloud-data: Nextcloud files, database, config (NEXTCLOUD_DATADIR)
+  # - borg-backups: Encrypted Borg backup repository
+  # - exports: Human-readable backup exports
+  - mkdir -p /mnt/nextcloud-data/nextcloud-data
   - mkdir -p /mnt/nextcloud-data/borg-backups
   - mkdir -p /mnt/nextcloud-data/exports
+  - chown -R ubuntu:ubuntu /mnt/nextcloud-data
 
-  # Configure Docker to use persistent storage for volumes
+  # Configure Docker logging (but keep default data-root)
   - mkdir -p /etc/docker
   - |
     cat > /etc/docker/daemon.json <<EOF
     {
-      "data-root": "/mnt/nextcloud-data/docker-volumes",
       "log-driver": "json-file",
       "log-opts": {
         "max-size": "10m",
@@ -138,9 +135,6 @@ runcmd:
       }
     }
     EOF
-
-  # Start Docker
-  - systemctl start docker
 
   # ===========================================================================
   # NEXTCLOUD PREPARATION
@@ -150,6 +144,9 @@ runcmd:
 
   # Create nextcloud directory in ubuntu home
   - mkdir -p /home/ubuntu/nextcloud
+
+  # Fix ownership for files created in write_files (ubuntu user exists now)
+  - chown ubuntu:ubuntu /home/ubuntu/system-info.sh
   - chown -R ubuntu:ubuntu /home/ubuntu/nextcloud
 
   # ===========================================================================
@@ -172,11 +169,23 @@ runcmd:
     EOF
 
   # ===========================================================================
+  # NEXTCLOUD AIO DEPLOYMENT
+  # ===========================================================================
+
+  - echo "=== Deploying Nextcloud AIO + Caddy ==="
+
+  # Deploy containers
+  # NOTE: At first boot, this creates fresh containers
+  # After backup/restore via AIO interface, data persists in Docker volumes
+  - cd /home/ubuntu/nextcloud && docker compose up -d
+  - echo "=== Nextcloud AIO deployed ==="
+
+  # ===========================================================================
   # COMPLETION
   # ===========================================================================
 
   - echo "=== Cloud-init setup complete ==="
-  - echo "=== System ready for Nextcloud deployment ==="
+  - echo "=== Nextcloud instance fully automated and ready! ==="
 
 # Write files
 write_files:
@@ -190,7 +199,6 @@ write_files:
   # System info script
   - path: /home/ubuntu/system-info.sh
     permissions: "0755"
-    owner: ubuntu:ubuntu
     content: |
       #!/bin/bash
       echo "=== Nextcloud Instance Info ==="
@@ -202,18 +210,106 @@ write_files:
       echo "Data Volume: $(df -h /mnt/nextcloud-data | tail -1)"
       echo "==========================="
 
+  # Nextcloud AIO + Caddy docker-compose.yml
+  - path: /home/ubuntu/nextcloud/docker-compose.yml
+    permissions: "0644"
+    content: |
+      services:
+        nextcloud-aio-mastercontainer:
+          image: nextcloud/all-in-one:latest
+          container_name: nextcloud-aio-mastercontainer
+          restart: always
+          ports:
+            - "8080:8080"
+            - "8443:8443"
+          environment:
+            - APACHE_PORT=11000
+            - APACHE_IP_BINDING=0.0.0.0
+            - SKIP_DOMAIN_VALIDATION=true
+            - TZ=UTC
+            - NEXTCLOUD_DATADIR=/mnt/nextcloud-data/nextcloud-data
+            - BORG_BACKUP_HOST_LOCATION=/mnt/nextcloud-data/borg-backups
+          volumes:
+            - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - /mnt/nextcloud-data:/mnt/nextcloud-data:rw
+          networks:
+            - nextcloud-aio
+
+        caddy:
+          image: caddy:latest
+          container_name: caddy-reverse-proxy
+          restart: always
+          ports:
+            - "80:80"
+            - "443:443"
+            - "443:443/udp"
+          volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - caddy_data:/data
+            - caddy_config:/config
+          networks:
+            - nextcloud-aio
+          depends_on:
+            - nextcloud-aio-mastercontainer
+
+      networks:
+        nextcloud-aio:
+          name: nextcloud-aio
+
+      volumes:
+        nextcloud_aio_mastercontainer:
+          name: nextcloud_aio_mastercontainer
+        caddy_data:
+        caddy_config:
+
+  # Caddyfile for reverse proxy
+  - path: /home/ubuntu/nextcloud/Caddyfile
+    permissions: "0644"
+    content: |
+      ${duckdns_domain}.duckdns.org {
+          reverse_proxy nextcloud-aio-apache:11000
+
+          header {
+              Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+              X-Frame-Options "SAMEORIGIN"
+              X-Content-Type-Options "nosniff"
+              X-XSS-Protection "1; mode=block"
+              Referrer-Policy "no-referrer"
+          }
+
+          encode gzip
+
+          log {
+              output file /data/access.log
+              level INFO
+          }
+      }
+
 # Final message
 final_message: |
   ================================================================
-  Nextcloud instance is ready!
+  Nextcloud instance is FULLY AUTOMATED and ready!
 
   Instance: ${app_name}
-  DuckDNS: ${duckdns_domain}.duckdns.org
+  Domain: ${duckdns_domain}.duckdns.org
 
-  Next steps:
-  1. SSH to the instance: ssh ubuntu@<public-ip>
-  2. Deploy Nextcloud: cd ~/nextcloud && docker compose up -d
-  3. Access AIO: https://<public-ip>:8080
+  ✅ Docker installed and configured
+  ✅ Persistent storage mounted (/mnt/nextcloud-data)
+  ✅ Nextcloud AIO deployed automatically
+  ✅ Caddy reverse proxy configured
+  ✅ Firewall (UFW) enabled
+  ✅ Fail2ban active
 
-  Data is persisted on: /mnt/nextcloud-data
+  Access AIO interface:
+  - https://<public-ip>:8080
+
+  Access Nextcloud (after AIO setup):
+  - https://${duckdns_domain}.duckdns.org
+
+  SSH: ssh ubuntu@<public-ip>
+
+  All data persisted on: /mnt/nextcloud-data
+
+  This instance is 100% Infrastructure as Code! 🚀
   ================================================================

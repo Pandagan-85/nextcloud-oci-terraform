@@ -101,60 +101,100 @@ Internet
 
 ## 🚀 Quick Start
 
-### Prerequisites
+**Choose your deployment method:**
 
+### 🎯 Option A: Terraform Deployment (Recommended - Fully Automated)
+
+**One command deploys everything!** Infrastructure as Code approach.
+
+**Prerequisites:**
+- Oracle Cloud account (free tier) with API credentials
+- Terraform installed locally
+- DuckDNS account (free)
+
+**Setup:**
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Pandagan-85/nextcloud-oci-terraform.git
+cd nextcloud-oci-terraform/terraform
+
+# 2. Configure Terraform variables
+cp terraform.tfvars.example terraform.tfvars
+nano terraform.tfvars  # Add OCI credentials, DuckDNS token, etc.
+
+# 3. Deploy infrastructure
+terraform init
+terraform plan    # Review changes
+terraform apply   # Deploy! ☕ Takes ~10 minutes
+
+# 4. Get outputs
+terraform output  # Shows public IP, URLs, SSH command
+```
+
+**What gets deployed automatically:**
+- ✅ OCI compute instance (4 OCPU ARM, 24GB RAM)
+- ✅ Persistent data volume (100GB, protected from destroy)
+- ✅ Network (VCN, subnet, security lists, internet gateway)
+- ✅ Firewall configured (UFW + Fail2ban)
+- ✅ Docker installed and configured
+- ✅ Nextcloud AIO + Caddy deployed
+- ✅ DuckDNS configured
+- ✅ SSL certificates obtained automatically
+
+**Access your instance:**
+```bash
+# Get connection info
+terraform output ssh_command
+terraform output nextcloud_url
+```
+
+See: [`terraform/README.md`](terraform/README.md) for detailed guide.
+
+---
+
+### 🛠️ Option B: Manual Deployment (Step-by-Step)
+
+**For learning or custom setups.** Full control over each step.
+
+**Prerequisites:**
 - Oracle Cloud account (free tier)
+- Existing OCI instance (Ubuntu 24.04 LTS, ARM64)
 - SSH key pair
 - DuckDNS account (free)
-- Domain configured (e.g., `yourname.duckdns.org`)
 
-### Step-by-Step Setup
+**Setup:**
 
-1. **Create OCI Instance**
+```bash
+# 1. Clone repository
+git clone https://github.com/Pandagan-85/nextcloud-oci-terraform.git
+cd nextcloud-oci-terraform
 
-   - Shape: VM.Standard.A1.Flex (ARM)
-   - Image: Ubuntu 24.04 LTS
-   - Resources: 4 OCPU, 24GB RAM
-   - Storage: 100GB boot volume
+# 2. Configure environment
+cp .env.example .env
+nano .env  # Add your instance IP, SSH key, DuckDNS credentials
 
-2. **Configure Security Lists**
+# 3. Generate configuration files
+./scripts/generate-config.sh  # Creates Caddyfile with your domain
 
-   - Open ports: 22 (SSH), 80 (HTTP), 443 (HTTPS), 8080 (AIO admin)
-   - See: [`docs/04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)
+# 4. Connect to instance
+./scripts/ssh-connect.sh
 
-3. **Initial Setup**
+# 5. Deploy Nextcloud
+./scripts/deploy-nextcloud.sh
+```
 
-   ```bash
-   # Clone repository
-   git clone https://github.com/Pandagan-85/nextcloud-oci-terraform.git
-   cd nextcloud-oci-terraform
+**Manual steps required:**
+1. Create OCI instance manually (VM.Standard.A1.Flex, 4 OCPU, 24GB RAM)
+2. Configure Security Lists (ports 22, 80, 443, 8080)
+3. Update system: [`docs/02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)
+4. Install Docker: [`docs/03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)
+5. Configure firewall: [`docs/04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)
+6. Deploy: [`docs/05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)
 
-   # Configure environment
-   cp .env.example .env
-   nano .env  # Add your IP, SSH key, DuckDNS credentials
-
-   # Connect to instance
-   ./scripts/ssh-connect.sh
-   ```
-
-4. **System Configuration**
-
-   - Update system: [`docs/02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)
-   - Install Docker: [`docs/03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)
-   - Configure firewall: [`docs/04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)
-
-5. **Deploy Nextcloud**
-
-   ```bash
-   # From your local machine
-   ./scripts/deploy-nextcloud.sh
-   ```
-
-   - Full guide: [`docs/05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)
-
-6. **Access & Configure**
-   - Admin interface: `https://YOUR_IP:8080`
-   - Nextcloud: `https://your-domain.duckdns.org`
+**Access:**
+- Admin interface: `https://YOUR_IP:8080`
+- Nextcloud: `https://your-domain.duckdns.org`
 
 ## 📖 Documentation
 
@@ -282,12 +322,20 @@ Common issues and solutions documented in:
 
 ## 🔮 Roadmap
 
-- [ ] Terraform automation for OCI provisioning
-- [ ] Automated data migration scripts
-- [ ] Monitoring with Prometheus + Grafana
-- [ ] Remote backup to cloud storage
-- [ ] CI/CD with GitHub Actions
-- [ ] High availability setup
+### ✅ Completed (Phase 1 & 2)
+- [x] **Terraform automation for OCI provisioning** - Full IaC implementation
+- [x] **Automated backup system** - Borg + human-readable exports
+- [x] **Pets vs Cattle pattern** - Persistent data volume, recreatable compute
+- [x] **Production hardening** - Firewall, Fail2ban, SSL, security headers
+
+### 🚧 In Progress (Phase 3)
+- [ ] **CI/CD with GitHub Actions** - Automated testing and deployment
+- [ ] **Monitoring with Prometheus + Grafana** - Metrics and alerting
+
+### 📋 Planned (Phase 4+)
+- [ ] **Remote backup to cloud storage** - Off-site backup to OCI Object Storage
+- [ ] **Automated data migration scripts** - Easy migration between instances
+- [ ] **High availability setup** - Multi-region deployment (beyond free tier)
 
 ## 🤝 Contributing
 

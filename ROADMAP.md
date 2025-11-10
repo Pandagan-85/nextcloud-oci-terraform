@@ -2,7 +2,7 @@
 
 Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
-**Ultimo aggiornamento**: 7 Novembre 2025
+**Ultimo aggiornamento**: 9 Novembre 2025
 
 ---
 
@@ -89,7 +89,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-## 🔄 FASE 3: AUTOMATION & IaC - IN CORSO
+## ✅ FASE 3: AUTOMATION & IaC - COMPLETATA
 
 ### Terraform Infrastructure as Code
 - [x] **Setup Terraform OCI provider** (`terraform/provider.tf`)
@@ -103,22 +103,24 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] Cloud-init bootstrap script
   - [x] Configurazione shape (4 OCPU, 24GB RAM)
 - [x] **Modulo storage con persistent volume** (`terraform/storage.tf`)
-  - [x] Block Volume separato (100GB)
-  - [x] `prevent_destroy = true` per protezione dati
+  - [x] Block Volume separato (150GB per backup Borg)
+  - [x] `prevent_destroy = true` per protezione backup
   - [x] Volume attachment automatico
+  - [x] **Architettura corretta**: Persistent volume SOLO per backup, dati in volumi Docker standard
 - [x] **Output e informazioni** (`terraform/outputs.tf`)
   - [x] Instance info, IPs, URLs
   - [x] SSH command, cost estimate
-- [x] **Cloud-init automation** (`terraform/cloud-init.yaml`)
+- [x] **Cloud-init automation completa** (`terraform/cloud-init.yaml`)
   - [x] Docker installation
-  - [x] Persistent storage mount
+  - [x] Persistent storage mount per backup
   - [x] UFW + Fail2ban setup
-  - [x] DuckDNS update
-- [x] **Template variabili** (`terraform/terraform.tfvars.example`)
-- [x] **Documentazione Terraform** (`terraform/README.md`)
-- [ ] **Testing su istanza separata** - *Prossimo step*
-- [ ] **Terraform import risorse esistenti** (opzionale)
-- [ ] **Validazione e deployment** - *Da fare*
+  - [x] DuckDNS auto-update
+  - [x] Nextcloud AIO + Caddy auto-deploy
+- [x] **Multi-environment setup** (`test.tfvars`, `prod.tfvars`)
+- [x] **Testing completo su TEST environment**
+- [x] **Deploy e test su PROD environment**
+- [x] **Validazione destroy/apply cycle** - Backup persistenti ✅
+- [x] **Documentazione Terraform** (`terraform/README.md`, `docs/08-TERRAFORM-STRATEGY.md`)
 
 ### Configuration Management
 - [ ] Ansible playbook per system setup (opzionale)
@@ -279,6 +281,16 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - Script bash con `set -e` possono terminare prematuramente in loop → usare `set -u` o error handling
 - curl in while loop consuma stdin → usare array o redirect `< /dev/null`
 
+#### Terraform & Infrastructure as Code (Nov 2025)
+- **❌ ERRORE CRITICO**: Configurare Docker `data-root` sul volume persistente causa corruzione degli overlay2 layers al destroy/apply
+- **✅ ARCHITETTURA CORRETTA**: Volume persistente SOLO per backup Borg, Docker volumes in `/var/lib/docker/volumes` (su boot volume)
+- **Pattern "Pets vs Cattle"**: Compute = Cattle (effimero, ricreabile), Data = Pet (persistente, nei backup)
+- Nextcloud AIO richiede volumi Docker standard - non modificare posizione con `data-root`
+- **Destroy/Apply workflow**: Istanza fresh → Setup AIO manuale → Restore da backup Borg
+- Questo è **by design**: disaster recovery richiede restore manuale, ma destroy/apply non dovrebbe essere frequente in production
+- `prevent_destroy` sul volume dati previene cancellazione accidentale dei backup
+- Cloud-init può auto-deployare container ma NON può restorare dati (richiede AIO interface)
+
 ---
 
-_Ultimo aggiornamento: 7 Novembre 2025_
+_Ultimo aggiornamento: 9 Novembre 2025_

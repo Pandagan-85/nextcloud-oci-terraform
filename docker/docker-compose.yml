@@ -1,4 +1,19 @@
-version: '3.8'
+# ==============================================================================
+# Docker Compose - Nextcloud AIO + Caddy Reverse Proxy
+# ==============================================================================
+# TEMPLATE file for manual deployments
+#
+# IMPORTANT: Before deploying manually:
+# 1. Copy .env.example to .env and configure your values
+# 2. Run: ./scripts/generate-config.sh (generates Caddyfile with your domain)
+# 3. Create persistent data directory: sudo mkdir -p /mnt/nextcloud-data
+# 4. Set permissions: sudo chown -R $USER:$USER /mnt/nextcloud-data
+# 5. Deploy: docker compose up -d
+#
+# For Terraform deployments:
+# - This file is auto-generated via cloud-init with proper configuration
+# - Persistent volume is created and mounted automatically
+# ==============================================================================
 
 services:
   nextcloud-aio-mastercontainer:
@@ -18,8 +33,17 @@ services:
       # Skip domain validation - Caddy handles reverse proxy
       - SKIP_DOMAIN_VALIDATION=true
 
-      # Timezone
-      - TZ=Europe/Rome
+      # Timezone - Change to your timezone (e.g., America/New_York, Asia/Tokyo)
+      # See: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      - TZ=UTC
+
+      # Nextcloud data directory on persistent volume
+      # For manual deployments: Create /mnt/nextcloud-data before starting
+      # For Terraform: Created automatically by cloud-init
+      - NEXTCLOUD_DATADIR=/mnt/nextcloud-data/nextcloud-data
+
+      # Borg backup location
+      - BORG_BACKUP_HOST_LOCATION=/mnt/nextcloud-data/borg-backups
 
     volumes:
       # Main data directory - stores all Nextcloud AIO data
@@ -27,6 +51,9 @@ services:
 
       # Docker socket (required for AIO to manage containers)
       - /var/run/docker.sock:/var/run/docker.sock:ro
+
+      # Persistent volume for Nextcloud data and backups (150GB)
+      - /mnt/nextcloud-data:/mnt/nextcloud-data:rw
 
     networks:
       - nextcloud-aio
