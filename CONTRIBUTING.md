@@ -23,12 +23,14 @@ This project aims to provide a **production-ready, fully automated, and reusable
 ### Development Setup
 
 1. **Fork and Clone**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/nextcloud-oci-terraform.git
    cd nextcloud-oci-terraform
    ```
 
 2. **Create a Branch**
+
    ```bash
    git checkout -b feature/your-feature-name
    # or
@@ -36,6 +38,7 @@ This project aims to provide a **production-ready, fully automated, and reusable
    ```
 
 3. **Set up Terraform**
+
    ```bash
    cd terraform
    cp terraform.tfvars.example terraform.tfvars
@@ -79,6 +82,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes
@@ -88,6 +92,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 - `chore`: Maintenance tasks
 
 **Examples:**
+
 ```bash
 feat(terraform): add support for custom VCN CIDR
 
@@ -116,6 +121,7 @@ Fixes #456
    - Add inline comments for complex code
 
 2. **Run Local Tests**
+
    ```bash
    # Format Terraform
    terraform fmt -recursive -check terraform/
@@ -213,18 +219,21 @@ docs/
 Looking for ideas? Here are areas that need help:
 
 ### High Priority
+
 - [ ] GitHub Actions workflows optimization
 - [ ] Monitoring with Prometheus + Grafana
 - [ ] Automated backup testing
 - [ ] Multi-region deployment guide
 
 ### Medium Priority
+
 - [ ] Object Storage integration for off-site backups
 - [ ] Data migration scripts
 - [ ] Performance tuning documentation
 - [ ] Cost optimization tips
 
 ### Nice to Have
+
 - [ ] Ansible playbooks alternative
 - [ ] GitLab CI/CD support
 - [ ] Docker Swarm/Kubernetes alternatives
@@ -248,7 +257,7 @@ Before submitting your PR, ensure:
 - [ ] PR template is filled out completely
 - [ ] Related issues are linked
 
-## 🙏 Thank You!
+## 🙏 Thank You
 
 Every contribution, no matter how small, is valuable. Thank you for helping make this project better!
 

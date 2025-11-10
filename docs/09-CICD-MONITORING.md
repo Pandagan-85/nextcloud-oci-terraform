@@ -26,16 +26,19 @@ Il progetto include **5 workflow GitHub Actions** completamente funzionanti:
 #### 1. **Terraform Validation** (`.github/workflows/terraform-validation.yml`)
 
 **Trigger:**
+
 - Pull Request su `terraform/**`
 - Push su `main` branch
 
 **Azioni:**
+
 - ✅ Format check (`terraform fmt -check -recursive`)
 - ✅ Initialization (`terraform init -backend=false`)
 - ✅ Validation (`terraform validate`)
 - ✅ Auto-comment on PR se fails
 
 **Test locale:**
+
 ```bash
 cd terraform
 terraform fmt -check -recursive
@@ -46,11 +49,13 @@ terraform validate
 #### 2. **Security Scanning** (`.github/workflows/security-scan.yml`)
 
 **Trigger:**
+
 - Pull Request
 - Push su `main`
 - Schedule settimanale (lunedì 9:00 UTC)
 
 **Scanner integrati:**
+
 - ✅ **tfsec**: Terraform security best practices
 - ✅ **Trivy**: Infrastructure as Code vulnerability scanner
 - ✅ **ShellCheck**: Bash script linting
@@ -59,6 +64,7 @@ terraform validate
 **Risultati:** Caricati automaticamente in GitHub Security tab
 
 **Test locale:**
+
 ```bash
 # Install tools
 brew install tfsec trivy shellcheck gitleaks
@@ -73,16 +79,19 @@ gitleaks detect --source . --verbose
 #### 3. **Documentation Checks** (`.github/workflows/documentation.yml`)
 
 **Trigger:**
+
 - Pull Request su `*.md` o `docs/**`
 - Push su `main`
 
 **Verifiche:**
+
 - ✅ Markdown linting (markdownlint)
 - ✅ Link validation (no broken links)
 - ✅ Terraform docs generation check
 - ✅ Spell checking
 
 **Test locale:**
+
 ```bash
 npm install -g markdownlint-cli2
 markdownlint-cli2 "**/*.md"
@@ -91,12 +100,14 @@ markdownlint-cli2 "**/*.md"
 #### 4. **Pull Request Checks** (`.github/workflows/pr-checks.yml`)
 
 **Automazioni su ogni PR:**
+
 - ✅ Mostra informazioni PR
 - ✅ Auto-labeling basato su file modificati
 - ✅ Size labels (XS, S, M, L, XL)
 - ✅ Conventional Commits validation
 
 **Labels automatiche:**
+
 - `terraform` - per modifiche in `terraform/**`
 - `docker` - per modifiche in `docker/**`
 - `scripts` - per modifiche in `scripts/**`
@@ -147,17 +158,20 @@ Aggiungi badges al README:
 **Come contribuire al progetto:**
 
 1. **Fork e clone**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/nextcloud-oci-terraform.git
    cd nextcloud-oci-terraform
    ```
 
 2. **Crea branch**
+
    ```bash
    git checkout -b feat/my-feature
    ```
 
 3. **Commit con Conventional Commits**
+
    ```bash
    git commit -m "feat(terraform): add custom CIDR support
 
@@ -169,9 +183,11 @@ Aggiungi badges al README:
    ```
 
 4. **Push e crea PR**
+
    ```bash
    git push origin feat/my-feature
    ```
+
    - I workflow si attivano automaticamente
    - Correggi eventuali errori
    - Aspetta review
@@ -183,12 +199,14 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 ### ⚠️ Considerazioni Importanti
 
 **Design Philosophy:**
+
 - I workflow **validano** il codice (format, security, docs)
 - **NON eseguono** `terraform apply` automatico
 - Il deploy rimane **manuale e controllato**
 - Focus su **qualità del codice** e **sicurezza**
 
 **Perché non auto-deploy?**
+
 - Nextcloud AIO richiede setup manuale iniziale
 - Restore da backup necessita intervento umano
 - Free tier OCI ha limiti di risorse
@@ -213,6 +231,7 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 ### Components da installare
 
 #### 1. Node Exporter (System Metrics)
+
 ```yaml
 # docker-compose.yml addition
   node-exporter:
@@ -234,6 +253,7 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 ```
 
 **Metriche raccolte**:
+
 - CPU usage, load average
 - Memory usage (free, cached, buffers)
 - Disk I/O, disk space
@@ -241,6 +261,7 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 - System uptime
 
 #### 2. cAdvisor (Docker Container Metrics)
+
 ```yaml
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -258,6 +279,7 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 ```
 
 **Metriche raccolte**:
+
 - Container CPU usage
 - Container memory usage
 - Container network I/O
@@ -265,6 +287,7 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 - Per-container resource limits
 
 #### 3. Prometheus Server
+
 ```yaml
   prometheus:
     image: prom/prometheus:latest
@@ -284,6 +307,7 @@ Vedi `CONTRIBUTING.md` per dettagli completi.
 ```
 
 **Configuration** (`prometheus.yml`):
+
 ```yaml
 global:
   scrape_interval: 15s
@@ -308,6 +332,7 @@ scrape_configs:
 ```
 
 #### 4. Grafana
+
 ```yaml
   grafana:
     image: grafana/grafana:latest
@@ -445,6 +470,7 @@ receivers:
 ## 📝 Implementation Checklist
 
 ### CI/CD Pipeline ✅
+
 - [x] Create `.github/workflows/terraform-validation.yml`
 - [x] Create `.github/workflows/security-scan.yml`
 - [x] Create `.github/workflows/documentation.yml`
@@ -456,6 +482,7 @@ receivers:
 - [ ] Configure branch protection rules
 
 ### Monitoring Stack
+
 - [ ] Add exporters to docker-compose.yml
 - [ ] Deploy Prometheus
 - [ ] Deploy Grafana
@@ -466,6 +493,7 @@ receivers:
 - [ ] Add Caddy reverse proxy for Grafana
 
 ### Documentation
+
 - [ ] CI/CD usage guide
 - [ ] Monitoring dashboard guide
 - [ ] Alert response procedures
@@ -476,17 +504,20 @@ receivers:
 ## 🎓 Risorse & Reference
 
 ### GitHub Actions
+
 - [Terraform GitHub Actions](https://github.com/hashicorp/setup-terraform)
 - [GitHub Actions best practices](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions)
 
 ### Prometheus & Grafana
+
 - [Node Exporter](https://github.com/prometheus/node_exporter)
 - [cAdvisor](https://github.com/google/cadvisor)
 - [Grafana Dashboards](https://grafana.com/grafana/dashboards/)
 - [Prometheus Alerting](https://prometheus.io/docs/alerting/latest/overview/)
 
 ### Nextcloud Monitoring
-- [Nextcloud Monitoring](https://docs.nextcloud.com/server/latest/admin_manual/configuration_server/monitoring.html)
+
+- [Nextcloud Server Administration](https://docs.nextcloud.com/server/latest/admin_manual/)
 - [Nextcloud Prometheus Exporter](https://github.com/xperimental/nextcloud-exporter)
 
 ---
@@ -494,15 +525,18 @@ receivers:
 ## ⚠️ Considerazioni Finali
 
 ### Costi
+
 - **Monitoring stack**: +500MB RAM, +5GB disk
 - Rientra nel free tier OCI (4 vCPU, 24GB RAM disponibili)
 
 ### Sicurezza
+
 - Grafana dietro reverse proxy con autenticazione
 - Prometheus solo accesso interno (localhost)
 - Alert via email cifrata (TLS)
 
 ### Manutenzione
+
 - Backup configurazioni Prometheus/Grafana
 - Retention policies per metriche (30 giorni di default)
 - Update regolari delle immagini Docker
@@ -510,6 +544,7 @@ receivers:
 ---
 
 **Status Attuale**:
+
 - ✅ Infrastructure as Code completa (Terraform)
 - ✅ CI/CD automation (GitHub Actions)
 - ✅ Automated backup system (Borg + exports)
@@ -518,4 +553,3 @@ receivers:
 - 🚧 Monitoring e observability (In pianificazione)
 
 **Next Step**: Implementare Prometheus + Grafana per monitoring completo
-

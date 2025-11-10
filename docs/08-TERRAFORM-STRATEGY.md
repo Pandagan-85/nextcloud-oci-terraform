@@ -11,6 +11,7 @@ Guida alla strategia Terraform implementata per Nextcloud: perché, come, e patt
 ### Il Problema Iniziale
 
 Abbiamo deployato Nextcloud **manualmente**:
+
 - SSH all'istanza OCI
 - Comandi manuali per setup (Docker, UFW, Fail2ban)
 - Configurazione via SSH
@@ -21,6 +22,7 @@ Abbiamo deployato Nextcloud **manualmente**:
 ### La Soluzione: Infrastructure as Code
 
 Con Terraform:
+
 - ✅ **Riproducibile**: Deploy identico ogni volta
 - ✅ **Versionato**: Git traccia ogni modifica
 - ✅ **Documentato**: Il codice È la documentazione
@@ -89,18 +91,21 @@ Questo è un pattern production-grade per applicazioni con dati persistenti.
 ### Cattle (Bestiame) - Application Layer
 
 **Caratteristiche:**
+
 - 🔄 Sostituibile
 - 📦 Standardizzato
 - 🚫 Nessun dato critico
 - ✅ Destroy/recreate è normale
 
 **Esempi nel progetto:**
+
 - Istanza OCI compute
 - Docker containers
 - Caddy reverse proxy
 - Sistema operativo
 
 **Operazione normale:**
+
 ```bash
 terraform destroy -target=oci_core_instance.nextcloud
 terraform apply
@@ -110,12 +115,14 @@ terraform apply
 ### Pets (Animali domestici) - Data Layer
 
 **Caratteristiche:**
+
 - 💎 Unico e insostituibile
 - 🔒 Protetto con `prevent_destroy`
 - 📊 Contiene lo stato dell'applicazione
 - ⚠️ Destroy = DISASTRO!
 
 **Esempi nel progetto:**
+
 - Block volume con database
 - Password app dispositivi
 - 2FA tokens
@@ -123,6 +130,7 @@ terraform apply
 - Backup Borg
 
 **Protezione:**
+
 ```hcl
 resource "oci_core_volume" "nextcloud_data" {
   # ...
@@ -157,6 +165,7 @@ terraform destroy
 ```
 
 **Problemi:**
+
 - ❌ `terraform destroy` → perdita dati
 - ❌ Cambio OS → devo migrare dati
 - ❌ Update infrastruttura → rischio
@@ -171,6 +180,7 @@ Block Volume (persiste)
 ```
 
 **Vantaggi:**
+
 - ✅ `terraform destroy` instance → dati intatti
 - ✅ Cambio OS → riattach volume, zero migrazione
 - ✅ Update infrastruttura → safe
@@ -203,6 +213,7 @@ Network:
 ### Scenario: Destroy e Recreate
 
 **Setup iniziale:**
+
 ```
 Boot Volume: 100 GB (contiene OS)
 Data Volume: 100 GB (contiene dati)
@@ -211,6 +222,7 @@ TOTALE:      200 GB ✅ FREE
 ```
 
 **Dopo terraform destroy:**
+
 ```
 Boot Volume: ELIMINATO (0 GB)
 Data Volume: 100 GB (persiste, prevent_destroy)
@@ -219,6 +231,7 @@ TOTALE:      100 GB ✅ FREE
 ```
 
 **Dopo terraform apply (recreate):**
+
 ```
 Boot Volume: 100 GB (nuovo, ricreato)
 Data Volume: 100 GB (stesso di prima, riattached)
@@ -233,6 +246,7 @@ TOTALE:      200 GB ✅ FREE
 **Cosa può costare:**
 
 ❌ **Non cancellare boot volume vecchio:**
+
 ```
 Boot old:  100 GB (orphan!)
 Boot new:  100 GB
@@ -242,6 +256,7 @@ TOTALE:    300 GB → OLTRE FREE TIER! (100GB = ~€2.50/mese)
 ```
 
 **Prevenzione Terraform:**
+
 ```hcl
 resource "oci_core_instance" "nextcloud" {
   preserve_boot_volume = false  # ← Auto-delete su destroy
@@ -249,12 +264,14 @@ resource "oci_core_instance" "nextcloud" {
 ```
 
 ❌ **Snapshot manuali dimenticati:**
+
 ```
 Free tier: 5 snapshot gratis
 Se ne crei > 5: costi!
 ```
 
 ❌ **Reserved IP non utilizzati:**
+
 ```
 Free tier: 2 reserved IPs
 Se ne crei 3+: costi!
@@ -280,6 +297,7 @@ resource "oci_core_volume" "nextcloud_data" {
 ```
 
 **Effetto:**
+
 ```bash
 $ terraform destroy
 
@@ -334,6 +352,7 @@ terraform apply tfplan
 **Obiettivo**: Passare da Ubuntu 24.04 a Ubuntu 26.04
 
 **Workflow tradizionale (manuale):**
+
 1. SSH all'istanza
 2. `do-release-upgrade`
 3. Sperare che non si rompa nulla
@@ -456,6 +475,7 @@ curl "https://www.duckdns.org/update?domains=...&ip=GREEN_IP"
 ### Perché NON Serve Riconfigurare
 
 **Database PostgreSQL contiene:**
+
 ```sql
 nextcloud_db
 ├── users (username, hashed password)
@@ -467,12 +487,14 @@ nextcloud_db
 ```
 
 **Quando fai destroy + apply:**
+
 1. ✅ Database persiste nel data volume
 2. ✅ Password app preserved
 3. ✅ 2FA secrets preserved
 4. ✅ Device tokens preserved
 
 **I dispositivi vedono:**
+
 ```
 1. Tentano connessione: pandagan-oci.duckdns.org
 2. DNS risolve nuovo IP (DuckDNS aggiorna)
@@ -501,6 +523,7 @@ resource "oci_core_instance" "nextcloud" {
 ```
 
 **Problemi:**
+
 - Boot volume ha tutti i dati
 - Non puoi cambiare OS facilmente
 - Cresce indefinitamente (backup, log, file)
@@ -524,6 +547,7 @@ resource "oci_core_volume" "data" {
 ```
 
 **Vantaggi:**
+
 - Boot volume ricreabile (clean OS ogni volta)
 - Data volume persiste (dati al sicuro)
 - Separazione compute/storage (cloud best practice)
@@ -536,10 +560,12 @@ resource "oci_core_volume" "data" {
 ### Opzione A: Setup Manuale (no Terraform)
 
 **Pro:**
+
 - Veloce per MVP
 - Nessuna curva apprendimento Terraform
 
 **Contro:**
+
 - ❌ Non riproducibile (dimentichi step)
 - ❌ Non versionato (no Git history)
 - ❌ Disaster recovery lento (3-4 ore rebuild)
@@ -548,10 +574,12 @@ resource "oci_core_volume" "data" {
 ### Opzione B: Terraform Semplice (no storage separato)
 
 **Pro:**
+
 - IaC basics
 - Riproducibile
 
 **Contro:**
+
 - ❌ `terraform destroy` = perdita dati
 - ❌ Pattern sbagliato per production
 - ❌ Portfolio value medio
@@ -559,6 +587,7 @@ resource "oci_core_volume" "data" {
 ### Opzione C: Terraform + Storage Separato ✅ (implementato)
 
 **Pro:**
+
 - ✅ IaC production-grade
 - ✅ Dati sicuri (prevent_destroy)
 - ✅ Riproducibile + versionato
@@ -566,16 +595,19 @@ resource "oci_core_volume" "data" {
 - ✅ Portfolio value alto ⭐⭐⭐⭐⭐
 
 **Contro:**
+
 - Più complesso (ma documentato!)
 - Richiede pianificazione storage
 
 ### Opzione D: Kubernetes + Helm
 
 **Pro:**
+
 - Buzzword-compliant per CV
 - Auto-scaling, HA, etc.
 
 **Contro:**
+
 - ❌ Overkill per single-user
 - ❌ OKE non è free tier (~€50/mese)
 - ❌ Complessità 10x rispetto a Docker Compose
@@ -601,6 +633,7 @@ terraform apply tfplan
 Il file `terraform.tfstate` contiene lo stato dell'infrastruttura.
 
 **Protezione:**
+
 ```bash
 # In .gitignore (già fatto)
 *.tfstate
@@ -634,6 +667,7 @@ tags = {
 ```
 
 **Utile per:**
+
 - Cost tracking
 - Resource filtering
 - Audit trail
@@ -645,30 +679,35 @@ tags = {
 ### Cosa Dimostri con Questo Setup
 
 **1. Cloud Engineering:**
+
 - ✅ OCI expertise
 - ✅ Free tier optimization
 - ✅ Networking (VCN, Security Lists)
 - ✅ Storage management (Block Volumes)
 
 **2. Infrastructure as Code:**
+
 - ✅ Terraform provider configuration
 - ✅ Modular structure
 - ✅ Variables e parametrizzazione
 - ✅ Output e automation
 
 **3. Production Patterns:**
+
 - ✅ Pets vs Cattle philosophy
 - ✅ Data persistence strategy
 - ✅ Disaster recovery planning
 - ✅ Cost optimization
 
 **4. DevOps:**
+
 - ✅ Automation (cloud-init, cron)
 - ✅ Security (UFW, Fail2ban, 2FA)
 - ✅ Monitoring e logging
 - ✅ Documentation-as-code
 
 **5. Problem Solving:**
+
 - ✅ Identificazione sfide (dati persistenti)
 - ✅ Ricerca soluzioni (storage separato)
 - ✅ Implementazione pattern (prevent_destroy)
@@ -677,11 +716,13 @@ tags = {
 ### Differenziazione Portfolio
 
 **Nextcloud basic (comune):**
+
 - Docker Compose + reverse proxy
 - Backup manuali
 - Setup one-time
 
 **Il TUO Nextcloud (avanzato):**
+
 - IaC con Terraform ⭐
 - Pattern production-grade ⭐⭐
 - Backup automation ⭐⭐
@@ -696,6 +737,7 @@ tags = {
 ### Questa Settimana
 
 1. **Test Terraform su istanza separata**
+
    ```bash
    cd terraform/
    # Use different instance name

@@ -9,12 +9,14 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## ✅ FASE 1: INFRASTRUCTURE SETUP - COMPLETATA
 
 ### Infrastruttura Base
+
 - [x] Creazione istanza OCI A1.Flex (4 vCPU, 24GB RAM, 100GB storage)
 - [x] Configurazione Security Lists OCI (porte 22, 80, 443, 8080)
 - [x] Setup SSH con chiavi e script di connessione
 - [x] Configurazione DuckDNS per DNS dinamico
 
 ### Sistema e Sicurezza Base
+
 - [x] Update sistema Ubuntu 24.04 LTS
 - [x] Installazione pacchetti essenziali
 - [x] Configurazione UFW firewall
@@ -22,6 +24,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Configurazione unattended-upgrades
 
 ### Docker Stack
+
 - [x] Installazione Docker Engine + Docker Compose
 - [x] Configurazione user non-root per Docker
 - [x] Setup Caddy reverse proxy
@@ -29,6 +32,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Deploy Nextcloud AIO con tutti i servizi
 
 ### Nextcloud Configuration
+
 - [x] Installazione Nextcloud Hub 25 Autumn
 - [x] Configurazione componenti opzionali:
   - [x] Collabora Online (Office editing)
@@ -38,12 +42,14 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] ~~Whiteboard~~ (rimosso - non necessario)
 
 ### Data Migration
+
 - [x] Creazione utente admin personalizzato
 - [x] Import contatti (rubrica.vcf)
 - [x] Import calendari (10 calendari .ics)
 - [x] Import tasks/attività
 
 ### Documentation & Version Control
+
 - [x] Documentazione completa step-by-step (6 guide)
 - [x] README professionale con architettura
 - [x] Script di deployment e utility
@@ -54,6 +60,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## ✅ FASE 2: HARDENING & PRODUCTION READINESS - COMPLETATA
 
 ### Security Hardening
+
 - [x] Eliminazione account admin default
 - [x] Verifica completa configurazione sicurezza
   - [x] Test SSL/TLS headers (HSTS, X-Frame-Options, X-Content-Type-Options)
@@ -63,6 +70,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Setup App Passwords per dispositivi
 
 ### Backup & Disaster Recovery
+
 - [x] Verifica backup automatici abilitati (Borg daily 04:00 UTC)
 - [x] Test backup manuale (primo backup 2.6MB)
 - [x] **Script download backup locale** (`download-backup.sh`)
@@ -75,6 +83,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [ ] Test disaster recovery completo - *Opzionale*
 
 ### Testing & Validation
+
 - [ ] Test sincronizzazione dispositivi (iPad, iPhone) - *Pianificato domani*
 - [x] Test desktop client (Fedora) - *In corso*
 - [x] Verifica consumo risorse: **~1GB RAM** di 24GB (ottimizzato!)
@@ -82,6 +91,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Test app Collabora/Office
 
 ### Documentation
+
 - [x] Guida backup & restore completa (`docs/06-BACKUP-RESTORE.md`)
 - [x] Scripts documentation (`scripts/README.md`)
 - [x] Troubleshooting guide integrata
@@ -92,6 +102,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## ✅ FASE 3: AUTOMATION & IaC - COMPLETATA
 
 ### Terraform Infrastructure as Code
+
 - [x] **Setup Terraform OCI provider** (`terraform/provider.tf`)
 - [x] **Configurazione variabili** (`terraform/variables.tf`)
 - [x] **Modulo creazione VCN e networking** (`terraform/network.tf`)
@@ -123,12 +134,14 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] **Documentazione Terraform** (`terraform/README.md`, `docs/08-TERRAFORM-STRATEGY.md`)
 
 ### Configuration Management
+
 - [ ] Ansible playbook per system setup (opzionale)
 - [ ] Automatizzazione installazione Docker
 - [ ] Automatizzazione deploy Nextcloud stack
 - [ ] Idempotency testing
 
 ### CI/CD Pipeline
+
 - [ ] GitHub Actions workflow per Terraform
 - [ ] Terraform plan su PR
 - [ ] Terraform apply su merge
@@ -140,6 +153,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## 🔮 FASE 4: ADVANCED FEATURES - FUTURO
 
 ### Monitoring & Observability
+
 - [ ] Prometheus setup per metriche
 - [ ] Grafana dashboard
   - [ ] System resources (CPU, RAM, disk)
@@ -150,18 +164,21 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [ ] Log aggregation (opzionale)
 
 ### High Availability & Scalability
+
 - [ ] Multi-region backup strategy
 - [ ] Database replication (futuro)
 - [ ] Load balancing considerations
 - [ ] CDN integration (opzionale)
 
 ### Additional Services
+
 - [ ] Vaultwarden (password manager)
 - [ ] Portainer (Docker GUI management)
 - [ ] Uptime Kuma (uptime monitoring)
 - [ ] Watchtower (auto-updates container)
 
 ### Advanced Security
+
 - [ ] Intrusion detection (OSSEC/Wazuh)
 - [ ] Web Application Firewall
 - [ ] Regular security audits
@@ -172,18 +189,21 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## 📊 Metriche di Successo
 
 ### MVP (Minimum Viable Product) ✅
+
 - [x] Nextcloud accessibile e funzionante
 - [x] SSL/HTTPS configurato
 - [x] Dati migrati correttamente
 - [x] Backup funzionanti
 
 ### Production Ready ✅ COMPLETATO
+
 - [x] Security hardening completo
 - [x] Backup testati e funzionanti (dual system: Borg + exports)
 - [x] Documentazione completa
 - [ ] Monitoring base attivo - *FASE 4*
 
 ### Portfolio Ready
+
 - [x] Terraform struttura completa (IaC pattern production-grade)
 - [ ] Terraform testato su deployment reale
 - [ ] CI/CD pipeline attiva
@@ -191,6 +211,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [ ] Demo/screenshots
 
 ### Production Grade (Lungo termine)
+
 - [ ] HA setup
 - [ ] Disaster recovery testato
 - [ ] Monitoring completo con alerting
@@ -201,6 +222,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## 🎯 Next Immediate Actions
 
 ### ✅ Completato Oggi (8 Nov 2025)
+
 1. ✅ **Configurato cron backup** - Backup automatici ogni domenica 22:00
 2. ✅ **2FA abilitato** - TOTP configurato
 3. ✅ **App Passwords create** - Dispositivi protetti
@@ -211,6 +233,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 **📋 IMPORTANTE: Seguire piano dettagliato in `TERRAFORM-MIGRATION-PLAN.md`**
 
 1. **Domenica 10 Nov - Verifica primo backup automatico** ⏱️ 5 min
+
    ```bash
    tail -f /tmp/nextcloud-backup.log
    ls -lh ~/nextcloud-backups/
@@ -262,17 +285,20 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 ## 📝 Note & Decisions
 
 ### Scelte architetturali
+
 - **Caddy vs Nginx/Traefik**: Scelto Caddy per SSL automatico e semplicità
 - **AIO vs Manual Setup**: AIO per gestione semplificata e best practices integrate
 - **PostgreSQL vs MySQL**: PostgreSQL incluso in AIO, migliori performance
 - **DuckDNS vs altri**: Gratuito, semplice, integrazione Let's Encrypt
 
 ### Container rimossi e perché
+
 - **Talk**: Funzionalità multi-utente non necessaria per uso singolo
 - **Whiteboard**: Collaborazione non necessaria
 - **ClamAV**: Troppo pesante (1GB RAM), antivirus non essenziale
 
 ### Lezioni apprese
+
 - `SKIP_DOMAIN_VALIDATION=true` causa problemi → Usare Caddy come reverse proxy
 - Importare calendario e tasks insieme, non separatamente
 - OCI Security Lists devono essere configurate PRIMA del deploy
@@ -282,6 +308,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - curl in while loop consuma stdin → usare array o redirect `< /dev/null`
 
 #### Terraform & Infrastructure as Code (Nov 2025)
+
 - **❌ ERRORE CRITICO**: Configurare Docker `data-root` sul volume persistente causa corruzione degli overlay2 layers al destroy/apply
 - **✅ ARCHITETTURA CORRETTA**: Volume persistente SOLO per backup Borg, Docker volumes in `/var/lib/docker/volumes` (su boot volume)
 - **Pattern "Pets vs Cattle"**: Compute = Cattle (effimero, ricreabile), Data = Pet (persistente, nei backup)
@@ -293,4 +320,4 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-_Ultimo aggiornamento: 9 Novembre 2025_
+*Ultimo aggiornamento: 9 Novembre 2025*

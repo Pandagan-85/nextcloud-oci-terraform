@@ -17,6 +17,7 @@ Questo documento spiega la strategia di backup automation implementata per garan
 **Soluzione**: Automazione con cron che esegue backup settimanali senza intervento manuale.
 
 **Risultato**:
+
 - ✅ Backup regolari garantiti
 - ✅ Copie off-site su PC locale
 - ✅ Dati esportati in formato portabile
@@ -38,6 +39,7 @@ Tipo:      Incrementale, encrypted, compresso
 ```
 
 **Contenuto:**
+
 - ✅ Database PostgreSQL completo
 - ✅ File utenti
 - ✅ Configurazioni Nextcloud
@@ -77,6 +79,7 @@ Cron job che esegue **weekly-backup.sh** ogni domenica alle 22:00.
 ```
 
 **Vantaggi:**
+
 - ✅ **Off-site**: Backup fisicamente separati dall'istanza
 - ✅ **Dual format**: Borg (completo) + Export (portabile)
 - ✅ **Automatico**: Zero intervento manuale
@@ -161,6 +164,7 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 ```
 
 **Output:**
+
 ```
 === Nextcloud Backup Cron Setup ===
 

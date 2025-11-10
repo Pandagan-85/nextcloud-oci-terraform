@@ -28,6 +28,7 @@ This Terraform configuration implements the **"Stateful Application with Persist
 ```
 
 **Key Benefits:**
+
 - ✅ `terraform destroy` on instance = safe (data preserved)
 - ✅ Data persists across instance recreations
 - ✅ Zero data loss on infrastructure updates
@@ -91,6 +92,7 @@ nano terraform.tfvars
 ```
 
 **Required values:**
+
 ```hcl
 tenancy_ocid     = "ocid1.tenancy.oc1..aaaaa..."
 user_ocid        = "ocid1.user.oc1..aaaaa..."
@@ -113,6 +115,7 @@ terraform plan
 ```
 
 **Expected resources:**
+
 - ✅ 1 VCN
 - ✅ 1 Internet Gateway
 - ✅ 1 Route Table
@@ -206,6 +209,7 @@ terraform apply
 ```
 
 **What happens:**
+
 - ✅ Compute instance destroyed
 - ✅ Block volume **preserved** (prevent_destroy)
 - ✅ New instance created

@@ -29,6 +29,7 @@ sudo apt autoclean
 **Tempo stimato**: 5-10 minuti (dipende dagli update disponibili)
 
 **Note**:
+
 - Se viene aggiornato il kernel, sarà necessario un reboot
 - Il sistema potrebbe chiedere conferme per servizi da riavviare
 
@@ -46,6 +47,7 @@ fi
 ```
 
 Se necessario:
+
 ```bash
 sudo reboot
 # Attendi ~30 secondi, poi riconnettiti con ./scripts/ssh-connect.sh
@@ -73,6 +75,7 @@ sudo apt install -y \
 ```
 
 **Descrizione pacchetti**:
+
 - `curl`, `wget`: Download file e API calls
 - `git`: Version control (per questo progetto)
 - `vim`, `htop`: Editor e monitor risorse
@@ -128,6 +131,7 @@ sudo nano /etc/apt/apt.conf.d/50unattended-upgrades
 ```
 
 Verifica che queste linee siano presenti e uncommentate:
+
 ```
 Unattended-Upgrade::Allowed-Origins {
     "${distro_id}:${distro_codename}-security";
@@ -150,6 +154,7 @@ sudo nano /etc/ssh/sshd_config
 ```
 
 Verifica/modifica queste impostazioni:
+
 ```
 # Disabilita root login (sicurezza)
 PermitRootLogin no
@@ -214,6 +219,7 @@ dpkg -l | grep -E "docker|curl|git|ufw|fail2ban" | awk '{print $2, $3}'
 **Causa**: Altro processo sta usando apt
 
 **Soluzione**:
+
 ```bash
 # Attendi che finisca, oppure
 sudo killall apt apt-get
@@ -228,6 +234,7 @@ sudo apt update
 **Causa**: Configurazione SSH errata
 
 **Soluzione**:
+
 ```bash
 # Dalla console OCI (Instance Console Connection)
 sudo cp /etc/ssh/sshd_config.backup /etc/ssh/sshd_config

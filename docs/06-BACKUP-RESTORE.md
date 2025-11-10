@@ -36,6 +36,7 @@ Guida completa per backup e disaster recovery di Nextcloud AIO.
 ### Cosa viene backuppato
 
 ✅ **Incluso**:
+
 - Database PostgreSQL completo
 - File utenti (documenti, foto, etc.)
 - Configurazioni Nextcloud
@@ -43,6 +44,7 @@ Guida completa per backup e disaster recovery di Nextcloud AIO.
 - Configurazione mastercontainer AIO
 
 ❌ **Escluso**:
+
 - External storage (se configurato)
 - Container images (si riscaricano)
 - Logs temporanei
@@ -66,6 +68,7 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 ```
 
 **Lo script**:
+
 - Verifica spazio disponibile
 - Mostra dimensione backup remoto
 - Usa `rsync` per download efficiente
@@ -111,15 +114,18 @@ Oltre ai backup Borg (encrypted), puoi esportare i tuoi dati in formati standard
 Lo script `export-data.sh` scarica:
 
 **Calendari** (formato .ics):
+
 - Eventi
 - Task/Attività
 - Importabili in qualsiasi app calendario
 
 **Contatti** (formato .vcf):
+
 - Tutti i contatti in un unico file
 - Importabile in qualsiasi rubrica
 
 **File list** (file-list.txt):
+
 - Lista file disponibili su Nextcloud
 - Per download completo, usa WebDAV o client desktop
 
@@ -154,18 +160,21 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 ### Import dati esportati
 
 **Calendari (.ics)**:
+
 - Google Calendar: Settings → Import & Export → Import
 - Apple Calendar: File → Import
 - Outlook: File → Open & Export → Import/Export
 
 **Contatti (.vcf)**:
+
 - Google Contacts: Import
 - Apple Contacts: File → Import
 - Outlook: File → Open & Export → Import/Export
 
 **Files**:
+
 - WebDAV: `https://pandagan-oci.duckdns.org/remote.php/dav/files/USERNAME/`
-- Desktop client: https://nextcloud.com/install/#install-clients
+- Desktop client: <https://nextcloud.com/install/#install-clients>
 
 ---
 
@@ -225,6 +234,7 @@ sudo borg extract ::nextcloud-aio_20251107-190000
 2. **Deploy Nextcloud AIO** (seguendo docs/05-CADDY-REVERSE-PROXY.md)
 
 3. **Carica backup** dal PC locale all'istanza:
+
    ```bash
    rsync -avzh ~/nextcloud-backups/ \
      ubuntu@NEW_IP:/mnt/backup/borg/
@@ -283,6 +293,7 @@ sudo borg check /mnt/backup/borg/
 `https://YOUR_IP:8080` → **Backup and restore**
 
 Dovresti vedere:
+
 - ✅ Data ultimo backup
 - ✅ Prossimo backup schedulato
 - ✅ Lista backup disponibili
@@ -292,6 +303,7 @@ Dovresti vedere:
 Nextcloud AIO **invia notifica** nell'interfaccia se backup fallisce.
 
 **Setup email alert** (opzionale):
+
 - Settings → Administration → Email server
 - Configura SMTP
 - Test invio email
@@ -340,6 +352,7 @@ Nextcloud AIO **invia notifica** nell'interfaccia se backup fallisce.
 Configurazione attuale (7 giorni) è buona per uso personale.
 
 **Se vuoi estendere**:
+
 - AIO interface → Backup settings
 - Aumenta retention (es: 14 o 30 giorni)
 - ⚠️ Considera spazio disco disponibile
@@ -363,6 +376,7 @@ sudo borg delete /mnt/backup/borg/::OLD_BACKUP_NAME
 **Errore: Password incorrect**
 
 Verifica password salvata:
+
 - Controlla in `.env` file
 - Controlla password manager
 - Se persa: **NON puoi recuperare backup**
@@ -428,12 +442,14 @@ sudo borg compact /mnt/backup/borg/
 ### Backup remoto cloud (pianificato)
 
 **BorgBase** (10GB gratis):
-1. Crea account su https://www.borgbase.com
+
+1. Crea account su <https://www.borgbase.com>
 2. Crea repository
 3. Configura in AIO → Remote borg repo
 4. Dual backup: locale + cloud
 
 **Alternative**:
+
 - Backblaze B2 (economico, $0.005/GB)
 - Google Drive + rclone
 - Rsync.net (professionale)
@@ -443,6 +459,7 @@ sudo borg compact /mnt/backup/borg/
 **✅ Backup settimanale automatico implementato!**
 
 Abbiamo creato un sistema completo che combina:
+
 1. **Download Borg backup** (sistema completo, encrypted)
 2. **Export dati leggibili** (calendari .ics, contatti .vcf)
 
@@ -456,6 +473,7 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 ```
 
 Lo script configura automaticamente:
+
 - Backup ogni **domenica alle 22:00**
 - Log in `/tmp/nextcloud-backup.log`
 - Esegue sia download Borg che export dati
@@ -502,9 +520,9 @@ systemctl status cron
 
 In caso di disaster recovery:
 
-1. **Questo repository**: https://github.com/Pandagan-85/nextcloud-oci-terraform
-2. **Documentazione Nextcloud AIO**: https://github.com/nextcloud/all-in-one
-3. **BorgBackup docs**: https://borgbackup.readthedocs.io
+1. **Questo repository**: <https://github.com/Pandagan-85/nextcloud-oci-terraform>
+2. **Documentazione Nextcloud AIO**: <https://github.com/nextcloud/all-in-one>
+3. **BorgBackup docs**: <https://borgbackup.readthedocs.io>
 
 ---
 
