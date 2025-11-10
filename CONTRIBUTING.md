@@ -47,18 +47,21 @@ This project aims to provide a **production-ready, fully automated, and reusable
 ### Code Style
 
 #### Terraform
+
 - Use consistent formatting: `terraform fmt -recursive`
 - Follow HashiCorp's [Terraform Style Guide](https://www.terraform.io/docs/language/syntax/style.html)
 - Add comments for complex logic
 - Use variables instead of hardcoded values
 
 #### Shell Scripts
+
 - Use `#!/bin/bash` shebang
 - Add descriptive comments
 - Use `set -e` for error handling
 - Follow [Google's Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
 
 #### Markdown
+
 - Follow [markdownlint](https://github.com/DavidAnson/markdownlint) rules
 - Use relative links for internal documentation
 - Keep line length reasonable (80-120 chars when possible)
@@ -67,7 +70,7 @@ This project aims to provide a **production-ready, fully automated, and reusable
 
 Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>

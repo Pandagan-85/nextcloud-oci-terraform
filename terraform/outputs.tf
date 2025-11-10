@@ -90,10 +90,10 @@ output "deployment_summary" {
       vcn_cidr  = var.vcn_cidr
     }
     access = {
-      ssh             = "ssh ubuntu@${oci_core_instance.nextcloud.public_ip}"
-      aio_interface   = "https://${oci_core_instance.nextcloud.public_ip}:8080"
-      nextcloud       = "https://${var.duckdns_domain}.duckdns.org"
-      duckdns_update  = "https://www.duckdns.org/update?domains=${var.duckdns_domain}&token=YOUR_TOKEN&ip="
+      ssh            = "ssh ubuntu@${oci_core_instance.nextcloud.public_ip}"
+      aio_interface  = "https://${oci_core_instance.nextcloud.public_ip}:8080"
+      nextcloud      = "https://${var.duckdns_domain}.duckdns.org"
+      duckdns_update = "https://www.duckdns.org/update?domains=${var.duckdns_domain}&token=YOUR_TOKEN&ip="
     }
   }
 }
@@ -102,10 +102,10 @@ output "deployment_summary" {
 output "cost_estimate" {
   description = "Estimated cost (Free Tier usage)"
   value = {
-    compute          = "FREE (4 OCPU ARM A1.Flex within Always Free limit)"
-    storage          = "FREE (${var.boot_volume_size_gb + var.data_volume_size_gb}GB total, max 200GB free)"
-    network          = "FREE (10TB outbound/month included)"
-    total_monthly    = "$0.00"
+    compute           = "FREE (4 OCPU ARM A1.Flex within Always Free limit)"
+    storage           = "FREE (${var.boot_volume_size_gb + var.data_volume_size_gb}GB total, max 200GB free)"
+    network           = "FREE (10TB outbound/month included)"
+    total_monthly     = "$0.00"
     exceeds_free_tier = var.boot_volume_size_gb + var.data_volume_size_gb > 200 ? "YES - Storage exceeds 200GB limit" : "NO"
   }
 }
