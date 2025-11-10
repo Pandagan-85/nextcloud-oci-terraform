@@ -256,19 +256,302 @@ Aggregates results from all stages and provides a clear pass/fail status.
 
 ### Current Status
 
-🚧 **Monitoring is not yet implemented.**
+✅ **Monitoring stack is fully implemented and ready to deploy!**
 
-### Planned Implementation
+### Architecture
 
-The following monitoring stack will be added in a future phase:
+The monitoring stack uses **Prometheus + Grafana** with exporters for comprehensive observability:
 
-- **Prometheus**: Metrics collection
-- **Grafana**: Visualization and dashboards
-- **Node Exporter**: System metrics (CPU, RAM, disk)
-- **cAdvisor**: Container metrics
-- **Alertmanager**: Alert notifications
+```
+┌───────────────────────────────────────────────────┐
+│              MONITORING STACK                     │
+├───────────────────────────────────────────────────┤
+│                                                   │
+│  ┌──────────────┐      ┌──────────────┐         │
+│  │ Node Exporter│─────▶│              │         │
+│  │  (System)    │      │  Prometheus  │         │
+│  └──────────────┘      │   :9090      │         │
+│                        │              │         │
+│  ┌──────────────┐      │              │         │
+│  │  cAdvisor    │─────▶│              │         │
+│  │ (Containers) │      └──────┬───────┘         │
+│  └──────────────┘             │                  │
+│                                ▼                  │
+│                        ┌──────────────┐          │
+│                        │   Grafana    │          │
+│                        │    :3000     │          │
+│                        └──────┬───────┘          │
+│                               │                   │
+│                        ┌──────▼───────┐          │
+│                        │     Caddy    │          │
+│                        │  Reverse     │          │
+│                        │    Proxy     │          │
+│                        └──────────────┘          │
+│                               │                   │
+└───────────────────────────────┼───────────────────┘
+                                ▼
+            https://monitoring.yourdomain.duckdns.org
+```
 
-See [ROADMAP.md](../ROADMAP.md) for details.
+### Components
+
+**Core Services:**
+
+1. **Prometheus** - Metrics collection and storage
+   - 15-second scrape interval
+   - 30-day data retention
+   - Localhost access only (security)
+
+2. **Grafana** - Visualization and dashboards
+   - Pre-configured Prometheus datasource
+   - HTTPS access via Caddy
+   - URL: `https://monitoring.{domain}.duckdns.org`
+
+**Exporters:**
+
+3. **Node Exporter** - System metrics
+   - CPU usage, load average
+   - Memory (free, cached, buffers)
+   - Disk I/O and space
+   - Network traffic
+
+4. **cAdvisor** - Container metrics
+   - Per-container CPU/memory usage
+   - Container network I/O
+   - Container health and restarts
+
+### Setup Instructions
+
+#### 1. Add Monitoring Subdomain to DuckDNS
+
+Go to [DuckDNS.org](https://www.duckdns.org) and add:
+
+```
+Subdomain: monitoring.yourdomain
+IP Address: (same as main domain)
+```
+
+#### 2. Configure Grafana Password
+
+Edit `.env` file:
+
+```bash
+# Generate secure password
+openssl rand -base64 32
+
+# Add to .env
+GRAFANA_ADMIN_PASSWORD=your-generated-password-here
+```
+
+#### 3. Deploy Monitoring Stack
+
+**On your OCI server:**
+
+```bash
+# Navigate to docker directory
+cd /opt/nextcloud/docker
+
+# Make sure .env has GRAFANA_ADMIN_PASSWORD set
+
+# Start all services (including monitoring)
+docker compose up -d
+
+# Check monitoring containers
+docker ps | grep -E "prometheus|grafana|node-exporter|cadvisor"
+
+# View logs
+docker compose logs -f prometheus grafana
+```
+
+#### 4. Access Grafana
+
+```
+URL: https://monitoring.yourdomain.duckdns.org
+Username: admin
+Password: (from GRAFANA_ADMIN_PASSWORD in .env)
+```
+
+**Important:** This is **self-hosted Grafana**, not Grafana Cloud. No cloud account needed!
+
+### Import Dashboards
+
+After logging into Grafana, import pre-built dashboards:
+
+#### Dashboard 1: Node Exporter Full (ID: 1860)
+
+1. Go to **Dashboards** → **Import**
+2. Enter dashboard ID: `1860`
+3. Select **Prometheus** datasource
+4. Click **Import**
+
+**Metrics included:**
+- CPU usage (per core and total)
+- Memory usage (RAM, swap, cache)
+- Disk space and I/O
+- Network traffic (RX/TX)
+- System load and uptime
+
+#### Dashboard 2: Docker Container Metrics (ID: 179)
+
+1. Go to **Dashboards** → **Import**
+2. Enter dashboard ID: `179`
+3. Select **Prometheus** datasource
+4. Click **Import**
+
+**Metrics included:**
+- Per-container CPU usage
+- Per-container memory usage
+- Container network I/O
+- Container restarts
+- Container health status
+
+### Metrics Available
+
+**System Metrics (Node Exporter):**
+
+```promql
+# CPU Usage Percentage
+100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+# Memory Usage Percentage
+(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+# Disk Usage Percentage
+(1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100
+
+# Network Traffic (MB/s)
+rate(node_network_transmit_bytes_total[5m]) / 1024 / 1024
+```
+
+**Container Metrics (cAdvisor):**
+
+```promql
+# Container CPU Usage (%)
+rate(container_cpu_usage_seconds_total{name=~"nextcloud.*"}[5m]) * 100
+
+# Container Memory Usage (MB)
+container_memory_usage_bytes{name=~"nextcloud.*"} / 1024 / 1024
+
+# Container Network RX (MB/s)
+rate(container_network_receive_bytes_total{name=~"nextcloud.*"}[5m]) / 1024 / 1024
+```
+
+### Resource Usage
+
+Estimated monitoring stack resource consumption:
+
+| Service | CPU | RAM | Disk (30 days) |
+|---------|-----|-----|----------------|
+| Prometheus | 0.1-0.3 | 500 MB - 1 GB | 2-5 GB |
+| Grafana | 0.05-0.1 | 100-200 MB | 100 MB |
+| Node Exporter | 0.01 | 10 MB | - |
+| cAdvisor | 0.1 | 50-100 MB | - |
+| **Total** | **~0.3 CPU** | **~1 GB** | **~3 GB** |
+
+Well within OCI free tier (4 vCPU, 24 GB RAM).
+
+### Security
+
+**Port Bindings:**
+
+All monitoring services bind to **localhost only**:
+- Prometheus: `127.0.0.1:9090`
+- Grafana: `127.0.0.1:3000`
+- Node Exporter: `127.0.0.1:9100`
+- cAdvisor: `127.0.0.1:8081`
+
+**Only Grafana is exposed** via HTTPS through Caddy reverse proxy.
+
+**Network Isolation:**
+
+Monitoring services run on dedicated `monitoring` network, isolated from `nextcloud-aio` network.
+
+**Authentication:**
+
+- Grafana requires username/password
+- User sign-up disabled
+- Strong password enforcement
+
+### Troubleshooting Monitoring
+
+**Prometheus not scraping metrics:**
+
+```bash
+# Check targets status
+# Go to: http://localhost:9090/targets
+# All should be "UP"
+
+# Or check from CLI
+curl http://localhost:9090/api/v1/targets | jq '.data.activeTargets[] | {job: .job, health: .health}'
+```
+
+**Grafana can't connect to Prometheus:**
+
+```bash
+# Test connectivity
+docker exec grafana wget -qO- http://prometheus:9090/-/healthy
+
+# Should return: "Prometheus is Healthy."
+```
+
+**cAdvisor not showing container metrics:**
+
+```bash
+# Check if cAdvisor is running
+docker ps | grep cadvisor
+
+# View cAdvisor logs
+docker compose logs cadvisor
+
+# Test metrics endpoint
+curl http://localhost:8081/metrics | grep container_
+```
+
+### Advanced: Custom Alerts (Optional)
+
+Create `docker/monitoring/alerts.yml` for alerting:
+
+```yaml
+groups:
+  - name: system
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage above 80% for 10 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage above 90%"
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage above 85%"
+```
+
+Then add Alertmanager to docker-compose.yml for notifications.
+
+### Documentation
+
+Complete monitoring documentation available at:
+- **Setup Guide**: `docker/monitoring/README.md`
+- **Grafana Dashboards**: Import IDs 1860 and 179
+- **PromQL Queries**: See monitoring README for examples
 
 ## Troubleshooting
 

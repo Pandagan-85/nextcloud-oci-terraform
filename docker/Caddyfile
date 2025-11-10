@@ -1,5 +1,5 @@
 # ==============================================================================
-# Caddyfile - Nextcloud AIO Reverse Proxy Configuration
+# Caddyfile - Nextcloud AIO + Monitoring Reverse Proxy Configuration
 # ==============================================================================
 # IMPORTANT: This is a TEMPLATE file for manual deployments
 #
@@ -11,6 +11,7 @@
 # For Terraform deployments, this file is auto-generated via cloud-init
 # ==============================================================================
 
+# Nextcloud AIO Main Site
 YOUR_DOMAIN.duckdns.org {
     # Reverse proxy to Nextcloud AIO Apache
     reverse_proxy nextcloud-aio-apache:11000
@@ -38,7 +39,37 @@ YOUR_DOMAIN.duckdns.org {
 
     # Logs
     log {
-        output file /data/access.log
+        output file /data/nextcloud-access.log
+        level INFO
+    }
+}
+
+# Grafana Monitoring Dashboard
+monitoring.YOUR_DOMAIN.duckdns.org {
+    # Reverse proxy to Grafana
+    reverse_proxy grafana:3000
+
+    # Security headers
+    header {
+        # Enable HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+        # Prevent clickjacking (allow for Grafana iframes)
+        X-Frame-Options "SAMEORIGIN"
+
+        # Prevent MIME-type sniffing
+        X-Content-Type-Options "nosniff"
+
+        # XSS protection
+        X-XSS-Protection "1; mode=block"
+    }
+
+    # Enable compression
+    encode gzip
+
+    # Logs
+    log {
+        output file /data/grafana-access.log
         level INFO
     }
 }

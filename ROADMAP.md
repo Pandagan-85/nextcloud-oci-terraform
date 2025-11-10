@@ -2,7 +2,7 @@
 
 Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
-**Ultimo aggiornamento**: 9 Novembre 2025
+**Ultimo aggiornamento**: 10 Novembre 2025
 
 ---
 
@@ -135,18 +135,51 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ### Configuration Management
 
-- [ ] Ansible playbook per system setup (opzionale)
-- [ ] Automatizzazione installazione Docker
-- [ ] Automatizzazione deploy Nextcloud stack
-- [ ] Idempotency testing
+- [x] **Automatizzazione installazione Docker** - FATTO via `cloud-init.yaml`
+- [x] **Automatizzazione deploy Nextcloud stack** - FATTO via `cloud-init.yaml`
+- [x] **Automatizzazione firewall + security** - FATTO (UFW + Fail2ban via cloud-init)
+- [x] **Automatizzazione DuckDNS update** - FATTO via cloud-init
+- [ ] Ansible playbook per system setup - *Non necessario (cloud-init è sufficiente)*
+- [ ] Idempotency testing - *Opzionale*
 
-### CI/CD Pipeline
+### CI/CD Pipeline ✅ COMPLETATA
 
-- [ ] GitHub Actions workflow per Terraform
-- [ ] Terraform plan su PR
-- [ ] Terraform apply su merge
-- [ ] Automated testing
-- [ ] Linting e validation automatica
+- [x] **GitHub Actions workflow per Terraform** (`ci.yml`)
+  - [x] Staged pipeline con 5 stage sequenziali
+  - [x] Fast feedback (< 5 min per PR)
+  - [x] Parallelizzazione intelligente (security + docker in parallelo)
+- [x] **Terraform validation su PR**
+  - [x] Format check (`terraform fmt`)
+  - [x] Init + Validate
+  - [x] tfsec security scanning
+  - [x] Trivy IaC vulnerability scanning
+- [ ] Terraform apply su merge - *Non implementato by design (deploy manuale)*
+- [x] **Automated testing completo**
+  - [x] YAML linting (yamllint)
+  - [x] Docker Compose validation
+  - [x] Markdown linting (markdownlint-cli2)
+  - [x] Shell script linting (shellcheck)
+  - [x] Secret detection (gitleaks)
+  - [x] Custom security checks (privileged containers, socket permissions)
+- [x] **Pre-commit hooks** (`.pre-commit-config.yaml`)
+  - [x] Setup script (`scripts/setup-precommit.sh`)
+  - [x] Auto-format Terraform, Markdown
+  - [x] Auto-lint YAML, Shell scripts
+  - [x] Secret detection locale
+- [x] **Scheduled security scans**
+  - [x] Deep security scan (weekly Monday 9:00 UTC)
+  - [x] Docker image vulnerability scan (weekly Wednesday 3:00 UTC)
+  - [x] SARIF upload to GitHub Security tab
+- [x] **PR automation**
+  - [x] Auto-labeling by file paths
+  - [x] Size labeling (XS/S/M/L/XL)
+  - [x] Conventional commits validation (informational)
+  - [x] Branch protection rules documented
+- [x] **Documentation CI/CD** (`docs/09-CICD-MONITORING.md`)
+  - [x] Pipeline architecture diagrams
+  - [x] Workflow structure explanation
+  - [x] Troubleshooting guide
+  - [x] Best practices
 
 ---
 
@@ -202,13 +235,13 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Documentazione completa
 - [ ] Monitoring base attivo - *FASE 4*
 
-### Portfolio Ready
+### Portfolio Ready ✅ COMPLETATO
 
 - [x] Terraform struttura completa (IaC pattern production-grade)
-- [ ] Terraform testato su deployment reale
-- [ ] CI/CD pipeline attiva
-- [ ] Monitoring avanzato
-- [ ] Demo/screenshots
+- [x] Terraform testato su deployment reale (test + prod environments)
+- [x] **CI/CD pipeline attiva** (GitHub Actions con 3 workflows)
+- [ ] Monitoring avanzato - *FASE 4*
+- [ ] Demo/screenshots - *Opzionale*
 
 ### Production Grade (Lungo termine)
 
@@ -277,8 +310,14 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
    - Documentare disaster recovery testato
    - README update con deployment reale
 
-6. **[Opzionale] CI/CD pipeline** - GitHub Actions
-7. **[FASE 4] Monitoring** - Prometheus + Grafana
+6. **✅ COMPLETATO: CI/CD pipeline** - GitHub Actions
+   - [x] Main CI workflow (ci.yml) con staged pipeline
+   - [x] Scheduled security scans (security-deep.yml, docker-image-scan.yml)
+   - [x] Pre-commit hooks per auto-formattazione
+   - [x] Branch protection rules documented
+   - [x] Documentazione completa (docs/09-CICD-MONITORING.md)
+
+7. **[FASE 4] Monitoring** - Prometheus + Grafana (prossimo step)
 
 ---
 
@@ -318,6 +357,18 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - `prevent_destroy` sul volume dati previene cancellazione accidentale dei backup
 - Cloud-init può auto-deployare container ma NON può restorare dati (richiede AIO interface)
 
+#### CI/CD & GitHub Actions (Nov 2025)
+
+- **Staged Pipeline**: Struttura con stage sequenziali (validation → security/docker parallel → summary) offre feedback rapido e chiaro
+- **Fail Fast**: Validation stage prima (< 2 min) evita di eseguire security scan costosi su codice malformato
+- **SARIF Upload Permissions**: Workflow che caricano su GitHub Security tab richiedono `security-events: write` permission
+- **Markdown Linting Exclusions**: `.terraform/` provider dependencies vanno esclusi con pattern `*/\.terraform/*` (doppio asterisco per nested paths)
+- **Pre-commit Hooks**: Testare localmente **prima** del commit riduce drasticamente i cicli di feedback CI/CD
+- **Terraform Security**: `tfsec` trova security issues che Terraform validate non rileva (es. public IP, security group rules)
+- **Separazione CI/Scheduled**: CI workflow con output `table` per feedback immediato, scheduled workflows con SARIF per tracking lungo termine
+- **Testing Locale Prima**: `find . -name "*.md" -not -path "*/\.terraform/*" | xargs markdownlint-cli2` per evitare commit inutili
+- **Git History Pulita**: Testare sempre localmente prima di pushare - commit multipli di fix sporcano la repo
+
 ---
 
-*Ultimo aggiornamento: 9 Novembre 2025*
+*Ultimo aggiornamento: 10 Novembre 2025*
