@@ -1,23 +1,18 @@
-name: Security Scanning
+name: Deep Security Scan (Scheduled)
 
 on:
-  pull_request:
-    paths:
-      - 'terraform/**'
-      - 'docker/**'
-      - 'scripts/**'
-      - '.github/workflows/security-scan.yml'
-  push:
-    branches:
-      - main
   schedule:
     # Run weekly on Monday at 9:00 UTC
     - cron: '0 9 * * 1'
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
   terraform-security:
     name: Terraform Security Scan (tfsec)
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -41,6 +36,9 @@ jobs:
   trivy-scan:
     name: Trivy Security Scan (Full IaC)
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
 
     steps:
       - name: Checkout code

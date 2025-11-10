@@ -1,13 +1,6 @@
-name: Docker Image Security Scan
+name: Docker Image Scan (Scheduled)
 
 on:
-  pull_request:
-    paths:
-      - 'docker/docker-compose.yml'
-      - '.github/workflows/docker-image-scan.yml'
-  push:
-    branches:
-      - main
   schedule:
     # Run weekly on Wednesday at 3:00 UTC
     - cron: '0 3 * * 3'
@@ -17,6 +10,9 @@ jobs:
   scan-images:
     name: Scan Docker Images for Vulnerabilities
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
 
     strategy:
       matrix:
