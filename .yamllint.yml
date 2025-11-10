@@ -22,10 +22,10 @@ rules:
 
   # Be more lenient with truthy values (yes/no, on/off, etc.)
   truthy:
-    allowed-values: ['true', 'false', 'yes', 'no', 'on', 'off']
+    allowed-values: ["true", "false", "yes", "no", "on", "off"]
     check-keys: false
 
 ignore: |
-  .terraform/
+  terraform/.terraform/
   node_modules/
   .git/

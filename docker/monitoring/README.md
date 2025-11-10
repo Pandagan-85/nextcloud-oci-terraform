@@ -40,17 +40,20 @@ Complete monitoring solution for Nextcloud on OCI using Prometheus and Grafana.
 ## Components
 
 ### 1. **Prometheus** (Port 9090)
+
 - Metrics collection and storage
 - 30-day retention by default
 - Scrapes metrics every 15 seconds
-- **Access**: http://localhost:9090 (localhost only)
+- **Access**: <http://localhost:9090> (localhost only)
 
 ### 2. **Grafana** (Port 3000)
+
 - Visualization and dashboards
 - Pre-configured Prometheus datasource
-- **Access**: https://monitoring.yourdomain.duckdns.org
+- **Access**: <https://monitoring.yourdomain.duckdns.org>
 
 ### 3. **Node Exporter** (Port 9100)
+
 - System metrics:
   - CPU usage, load average
   - Memory (free, cached, buffers)
@@ -59,6 +62,7 @@ Complete monitoring solution for Nextcloud on OCI using Prometheus and Grafana.
   - System uptime
 
 ### 4. **cAdvisor** (Port 8081)
+
 - Docker container metrics:
   - Per-container CPU usage
   - Per-container memory usage
@@ -158,23 +162,29 @@ docker compose logs -f prometheus grafana
 ### Import Pre-built Dashboards
 
 1. **Node Exporter Full** (ID: 1860)
+
    ```
    Grafana → Dashboards → Import → Enter ID: 1860
    ```
+
    - Comprehensive system monitoring
    - CPU, Memory, Disk, Network graphs
 
 2. **Docker Container & Host Metrics** (ID: 179)
+
    ```
    Grafana → Dashboards → Import → Enter ID: 179
    ```
+
    - Per-container resource usage
    - Container health monitoring
 
 3. **Caddy Monitoring** (ID: 14280)
+
    ```
    Grafana → Dashboards → Import → Enter ID: 14280
    ```
+
    - HTTP request rates
    - Response times
    - SSL certificate status
@@ -184,26 +194,31 @@ docker compose logs -f prometheus grafana
 Useful PromQL queries for custom dashboards:
 
 **CPU Usage Percentage**:
+
 ```promql
 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
 ```
 
 **Memory Usage Percentage**:
+
 ```promql
 (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
 ```
 
 **Disk Usage Percentage**:
+
 ```promql
 (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100
 ```
 
 **Container CPU Usage**:
+
 ```promql
 rate(container_cpu_usage_seconds_total{name=~"nextcloud.*"}[5m]) * 100
 ```
 
 **Container Memory Usage (MB)**:
+
 ```promql
 container_memory_usage_bytes{name=~"nextcloud.*"} / 1024 / 1024
 ```
@@ -240,6 +255,7 @@ docker exec grafana wget -qO- http://prometheus:9090/-/healthy
 ### cAdvisor Privileged Mode Warning
 
 cAdvisor requires `privileged: true` to access host metrics. This is by design and safe as:
+
 - Container is read-only for most paths
 - Only collects metrics, doesn't modify system
 - Industry standard practice for container monitoring
@@ -247,11 +263,13 @@ cAdvisor requires `privileged: true` to access host metrics. This is by design a
 ### High Memory Usage
 
 Prometheus stores metrics in memory. Expected usage:
+
 - Base: ~50-100 MB
 - Per day of data: ~10-20 MB
 - With 30-day retention: ~500 MB - 1 GB
 
 To reduce:
+
 ```yaml
 # In prometheus command section of docker-compose.yml
 - '--storage.tsdb.retention.time=15d'  # Reduce to 15 days
@@ -262,6 +280,7 @@ To reduce:
 ### Port Bindings
 
 All monitoring services bind to `127.0.0.1` (localhost only):
+
 - Prometheus: `127.0.0.1:9090`
 - Grafana: `127.0.0.1:3000`
 - Node Exporter: `127.0.0.1:9100`
@@ -348,7 +367,7 @@ curl 'http://localhost:9090/api/v1/query?query=up'
 
 1. **Set up Alertmanager** (optional)
    - Email/Slack notifications for critical alerts
-   - See: https://prometheus.io/docs/alerting/latest/alertmanager/
+   - See: <https://prometheus.io/docs/alerting/latest/alertmanager/>
 
 2. **Create Custom Dashboards**
    - Nextcloud-specific metrics

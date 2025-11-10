@@ -385,6 +385,7 @@ After logging into Grafana, import pre-built dashboards:
 4. Click **Import**
 
 **Metrics included:**
+
 - CPU usage (per core and total)
 - Memory usage (RAM, swap, cache)
 - Disk space and I/O
@@ -399,6 +400,7 @@ After logging into Grafana, import pre-built dashboards:
 4. Click **Import**
 
 **Metrics included:**
+
 - Per-container CPU usage
 - Per-container memory usage
 - Container network I/O
@@ -455,6 +457,7 @@ Well within OCI free tier (4 vCPU, 24 GB RAM).
 **Port Bindings:**
 
 All monitoring services bind to **localhost only**:
+
 - Prometheus: `127.0.0.1:9090`
 - Grafana: `127.0.0.1:3000`
 - Node Exporter: `127.0.0.1:9100`
@@ -549,6 +552,7 @@ Then add Alertmanager to docker-compose.yml for notifications.
 ### Documentation
 
 Complete monitoring documentation available at:
+
 - **Setup Guide**: `docker/monitoring/README.md`
 - **Grafana Dashboards**: Import IDs 1860 and 179
 - **PromQL Queries**: See monitoring README for examples

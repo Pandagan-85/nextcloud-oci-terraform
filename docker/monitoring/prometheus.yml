@@ -12,8 +12,8 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    monitor: 'nextcloud-monitoring'
-    environment: 'production'
+    monitor: "nextcloud-monitoring"
+    environment: "production"
 
 # Alerting configuration (optional)
 # alerting:
@@ -27,32 +27,30 @@ global:
 
 scrape_configs:
   # Prometheus itself
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
         labels:
-          service: 'prometheus'
+          service: "prometheus"
 
   # Node Exporter - System metrics (CPU, RAM, disk, network)
-  - job_name: 'node-exporter'
+  - job_name: "node-exporter"
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ["node-exporter:9100"]
         labels:
-          service: 'system'
-          instance: 'nextcloud-server'
+          service: "system"
+          instance: "nextcloud-server"
 
   # cAdvisor - Docker container metrics
-  - job_name: 'cadvisor'
+  - job_name: "cadvisor"
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ["cadvisor:8080"]
         labels:
-          service: 'containers'
+          service: "containers"
 
   # Caddy metrics (requires Caddy admin API)
-  - job_name: 'caddy'
+  - job_name: "caddy"
     static_configs:
-      - targets: ['caddy:2019']
+      - targets: ["caddy:2019"]
         labels:
-          service: 'reverse-proxy'
-    # Caddy admin API may not be exposed by default
-    # Enable with: caddy run --admin 0.0.0.0:2019
+          service: "reverse-proxy"
