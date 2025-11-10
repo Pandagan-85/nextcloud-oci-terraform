@@ -66,6 +66,8 @@ jobs:
         uses: wagoid/commitlint-github-action@v6
         with:
           configFile: .github/commitlint.config.mjs
+          failOnWarnings: false
+          helpURL: 'https://www.conventionalcommits.org'
 
   all-checks:
     name: All Checks Summary

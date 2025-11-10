@@ -28,7 +28,7 @@ if [ -z "$OCI_INSTANCE_IP" ] || [ "$OCI_INSTANCE_IP" = "YOUR_PUBLIC_IP_HERE" ]; 
     exit 1
 fi
 
-if [ -z "$OCI_SSH_KEY_PATH" ] || [ "$OCI_SSH_KEY_PATH" = "~/.ssh/YOUR_KEY_NAME" ]; then
+if [ -z "$OCI_SSH_KEY_PATH" ] || [ "$OCI_SSH_KEY_PATH" = "$HOME/.ssh/YOUR_KEY_NAME" ]; then
     echo -e "${RED}Error: OCI_SSH_KEY_PATH not set in .env${NC}"
     exit 1
 fi

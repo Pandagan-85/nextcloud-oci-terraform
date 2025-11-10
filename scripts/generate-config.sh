@@ -23,6 +23,7 @@ fi
 
 # Load environment variables (only lines with = and not comments)
 set -a
+# shellcheck disable=SC1090
 source <(grep -E '^[A-Z_]+=.*' .env)
 set +a
 
