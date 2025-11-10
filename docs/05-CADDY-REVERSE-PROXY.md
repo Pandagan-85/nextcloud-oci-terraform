@@ -312,7 +312,7 @@ pandagan-oci.duckdns.org {
 ### HSTS Preload
 
 Per massima sicurezza, registra il dominio nella HSTS Preload List:
-https://hstspreload.org/
+<https://hstspreload.org/>
 
 ### Rate Limiting (opzionale)
 

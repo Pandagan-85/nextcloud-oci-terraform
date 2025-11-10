@@ -1,0 +1,180 @@
+name: Docker & YAML Checks
+
+on:
+  pull_request:
+    paths:
+      - 'docker/**'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '.github/workflows/docker-yaml-checks.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'docker/**'
+      - '**/*.yml'
+      - '**/*.yaml'
+
+jobs:
+  yaml-lint:
+    name: YAML Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
+        run: |
+          yamllint -f parsable \
+            docker/docker-compose.yml \
+            terraform/cloud-init.yaml \
+            .github/workflows/*.yml
+
+  docker-compose-validate:
+    name: Docker Compose Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate docker-compose.yml
+        run: |
+          cd docker
+          docker compose config --quiet
+
+  docker-compose-security:
+    name: Docker Compose Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy on Docker Compose
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: 'docker/docker-compose.yml'
+          format: 'sarif'
+          output: 'trivy-docker-compose.sarif'
+          severity: 'MEDIUM,HIGH,CRITICAL'
+          exit-code: '0'
+
+      - name: Upload Trivy Docker Compose results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-docker-compose.sarif'
+          category: 'docker-compose'
+
+  dockerfile-lint:
+    name: Dockerfile Linting (Hadolint)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: './docker/Dockerfile*'
+          recursive: true
+          failure-threshold: warning
+          ignore: DL3008,DL3009  # Ignore pin versions warnings (using official images)
+        continue-on-error: true  # Don't fail if no Dockerfiles found
+
+  docker-security-best-practices:
+    name: Docker Security Best Practices
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for privileged containers
+        run: |
+          echo "Checking docker-compose.yml for security issues..."
+
+          # Check for privileged mode
+          if grep -q "privileged.*true" docker/docker-compose.yml; then
+            echo "❌ ERROR: Privileged containers found!"
+            exit 1
+          else
+            echo "✅ No privileged containers"
+          fi
+
+          # Check for host network mode
+          if grep -q "network_mode.*host" docker/docker-compose.yml; then
+            echo "⚠️  WARNING: Host network mode detected"
+          else
+            echo "✅ No host network mode"
+          fi
+
+          # Check for capabilities
+          if grep -q "cap_add" docker/docker-compose.yml; then
+            echo "⚠️  WARNING: Additional capabilities added - review manually"
+            grep -A 2 "cap_add" docker/docker-compose.yml || true
+          else
+            echo "✅ No additional capabilities"
+          fi
+
+      - name: Check volume permissions
+        run: |
+          echo "Checking volume mount permissions..."
+
+          # Check for writable host mounts
+          if grep -E ":/.*:rw" docker/docker-compose.yml; then
+            echo "⚠️  WARNING: Writable host mounts detected:"
+            grep -E ":/.*:rw" docker/docker-compose.yml || true
+            echo "Ensure these are intentional and necessary."
+          fi
+
+          # Check for read-only when possible
+          if grep -q "docker.sock.*:rw" docker/docker-compose.yml; then
+            echo "❌ ERROR: Docker socket should be read-only!"
+            exit 1
+          else
+            echo "✅ Docker socket is read-only or not exposed"
+          fi
+
+      - name: Check for secrets in compose file
+        run: |
+          echo "Checking for hardcoded secrets..."
+
+          # Check for common secret patterns
+          if grep -iE "(password|secret|token|key).*:.*['\"]" docker/docker-compose.yml | grep -v "YOUR_"; then
+            echo "⚠️  WARNING: Potential hardcoded secrets found:"
+            grep -iE "(password|secret|token).*:.*['\"]" docker/docker-compose.yml | grep -v "YOUR_" || true
+            echo "Ensure these are placeholders or environment variables."
+          else
+            echo "✅ No obvious hardcoded secrets"
+          fi
+
+  cloud-init-validation:
+    name: Cloud-init YAML Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cloud-init
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cloud-init
+
+      - name: Validate cloud-init syntax
+        run: |
+          cloud-init schema --config-file terraform/cloud-init.yaml || \
+          echo "⚠️  Note: cloud-init validation may fail due to template variables"

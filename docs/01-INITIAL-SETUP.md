@@ -27,6 +27,7 @@ nano .env  # oppure vim, code, etc.
 ```
 
 Campi da configurare:
+
 - `OCI_INSTANCE_IP`: L'IP pubblico dalla console OCI
 - `OCI_SSH_KEY_PATH`: Path alla tua chiave privata (es: `~/.ssh/id_rsa_oci`)
 - Gli altri campi possono rimanere di default per ora
@@ -54,6 +55,7 @@ chmod +x scripts/ssh-connect.sh
 ```
 
 Se tutto è corretto, dovresti vedere:
+
 ```
 Connecting to OCI instance...
 IP: xxx.xxx.xxx.xxx
@@ -76,6 +78,7 @@ Host nextcloud-oci
 ```
 
 Poi potrai connetterti semplicemente con:
+
 ```bash
 ssh nextcloud-oci
 ```
@@ -99,6 +102,7 @@ ip addr show
 ```
 
 Dovresti vedere:
+
 - **OS**: Ubuntu 22.04 o 24.04 LTS (ARM64)
 - **RAM**: ~24GB
 - **CPU**: 4 cores (ARM Ampere)
@@ -111,6 +115,7 @@ Dovresti vedere:
 **Causa**: Chiave SSH non corretta o permessi sbagliati
 
 **Soluzione**:
+
 ```bash
 # Verifica permessi
 ls -la ~/.ssh/YOUR_KEY_NAME
@@ -125,6 +130,7 @@ chmod 600 ~/.ssh/YOUR_KEY_NAME
 **Causa**: Firewall OCI o Security List bloccano SSH
 
 **Soluzione**: Dalla console OCI:
+
 1. Vai a Networking → Virtual Cloud Networks
 2. Seleziona la VCN dell'istanza
 3. Security Lists → Default Security List
@@ -136,6 +142,7 @@ chmod 600 ~/.ssh/YOUR_KEY_NAME
 **Causa**: Chiave host cambiata (istanza ricreata)
 
 **Soluzione**:
+
 ```bash
 ssh-keygen -R YOUR_INSTANCE_IP
 ```

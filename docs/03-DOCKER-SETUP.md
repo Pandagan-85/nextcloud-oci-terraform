@@ -63,6 +63,7 @@ sudo apt install -y \
 ```
 
 **Componenti installati**:
+
 - `docker-ce`: Docker Engine
 - `docker-ce-cli`: Docker CLI
 - `containerd.io`: Container runtime
@@ -105,18 +106,21 @@ groups $USER
 ```
 
 **IMPORTANTE**: Per applicare le modifiche ai gruppi, devi:
+
 1. Disconnetterti e riconnetterti via SSH, OPPURE
 2. Usare: `newgrp docker`
 
 ### 4.2 Applica modifiche
 
 **Opzione A - Riconnetti SSH** (consigliato):
+
 ```bash
 exit
 # Poi dal tuo PC: ./scripts/ssh-connect.sh
 ```
 
 **Opzione B - Usa newgrp**:
+
 ```bash
 newgrp docker
 ```
@@ -140,6 +144,7 @@ docker run hello-world
 ```
 
 **Output atteso**:
+
 ```
 Hello from Docker!
 This message shows that your installation appears to be working correctly.
@@ -225,6 +230,7 @@ echo ""
 ```
 
 **Checklist finale**:
+
 - ✅ Docker version >= 24.x
 - ✅ Docker Compose version >= 2.x
 - ✅ Architecture: arm64/aarch64
@@ -267,6 +273,7 @@ docker stats
 **Causa**: User non nel gruppo docker
 
 **Soluzione**:
+
 ```bash
 sudo usermod -aG docker $USER
 # Poi disconnetti/riconnetti SSH
@@ -277,6 +284,7 @@ sudo usermod -aG docker $USER
 **Causa**: Servizio Docker non running
 
 **Soluzione**:
+
 ```bash
 sudo systemctl start docker
 sudo systemctl enable docker
@@ -287,6 +295,7 @@ sudo systemctl enable docker
 **Causa**: Repository non configurato correttamente
 
 **Soluzione**:
+
 ```bash
 # Ripeti step 2 configurazione repository
 sudo apt update

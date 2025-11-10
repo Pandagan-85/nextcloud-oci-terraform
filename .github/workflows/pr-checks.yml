@@ -1,0 +1,89 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-info:
+    name: PR Information
+    runs-on: ubuntu-latest
+    steps:
+      - name: PR Info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            console.log('PR Information:');
+            console.log(`- Title: ${pr.title}`);
+            console.log(`- Author: ${pr.user.login}`);
+            console.log(`- Base: ${pr.base.ref}`);
+            console.log(`- Head: ${pr.head.ref}`);
+            console.log(`- Files changed: ${pr.changed_files}`);
+            console.log(`- Additions: +${pr.additions}`);
+            console.log(`- Deletions: -${pr.deletions}`);
+
+  label-pr:
+    name: Auto Label PR
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Label PR based on files
+        uses: actions/labeler@v5
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: .github/labeler.yml
+
+  size-label:
+    name: Add Size Label
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: codelytv/pr-size-labeler@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          xs_label: 'size/XS'
+          xs_max_size: 10
+          s_label: 'size/S'
+          s_max_size: 100
+          m_label: 'size/M'
+          m_max_size: 500
+          l_label: 'size/L'
+          l_max_size: 1000
+          xl_label: 'size/XL'
+
+  conventional-commits:
+    name: Check Commit Messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Conventional Commits
+        uses: wagoid/commitlint-github-action@v6
+        continue-on-error: true  # Don't fail PR on commit message issues
+        with:
+          configFile: .github/commitlint.config.mjs
+          failOnWarnings: false
+          failOnErrors: false
+          helpURL: 'https://www.conventionalcommits.org'
+
+  all-checks:
+    name: All Checks Summary
+    runs-on: ubuntu-latest
+    needs: [pr-info, label-pr, size-label, conventional-commits]
+    if: always()
+    steps:
+      - name: Check if all jobs passed
+        run: |
+          if [ "${{ needs.pr-info.result }}" != "success" ] ||
+             [ "${{ needs.label-pr.result }}" != "success" ] ||
+             [ "${{ needs.size-label.result }}" != "success" ] ||
+             [ "${{ needs.conventional-commits.result }}" != "success" ]; then
+            echo "Some checks failed!"
+            exit 1
+          fi
+          echo "✅ All PR checks passed!"

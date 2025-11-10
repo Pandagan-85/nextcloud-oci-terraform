@@ -7,6 +7,7 @@ Questa directory contiene tutti gli script per gestire backup, export dati e man
 ### 🔐 Backup e Export
 
 #### `download-backup.sh`
+
 Scarica i backup Borg dal server OCI al PC locale.
 
 ```bash
@@ -14,6 +15,7 @@ Scarica i backup Borg dal server OCI al PC locale.
 ```
 
 **Cosa fa:**
+
 - Scarica backup Borg encrypted da `/mnt/backup/borg/` (su OCI)
 - Salva in `~/nextcloud-backups/` (su PC locale)
 - Usa rsync per transfer efficiente (solo differenze)
@@ -21,6 +23,7 @@ Scarica i backup Borg dal server OCI al PC locale.
 - Crea `BACKUP_INFO.txt` con dettagli
 
 **Quando usarlo:**
+
 - Settimanalmente (automatico con cron)
 - Prima di update importanti
 - Quando vuoi copia locale dei backup
@@ -28,6 +31,7 @@ Scarica i backup Borg dal server OCI al PC locale.
 ---
 
 #### `export-data.sh`
+
 Esporta dati Nextcloud in formati leggibili (calendari, contatti).
 
 ```bash
@@ -35,6 +39,7 @@ Esporta dati Nextcloud in formati leggibili (calendari, contatti).
 ```
 
 **Cosa fa:**
+
 - Esporta calendari come file `.ics`
 - Esporta contatti come file `.vcf`
 - Crea lista file disponibili
@@ -42,18 +47,21 @@ Esporta dati Nextcloud in formati leggibili (calendari, contatti).
 - Crea symlink `latest` all'ultimo export
 
 **Quando usarlo:**
+
 - Settimanalmente (automatico con cron)
 - Prima di migrare ad altro servizio
 - Per backup "leggibile" dei dati
 - Per import in Google/Apple/Outlook
 
 **⚠️ Importante:** Verifica che nel file `.env` ci sia:
+
 - `NEXTCLOUD_ADMIN_USER=` con il tuo username admin (NON "admin" default!)
 - `NEXTCLOUD_ADMIN_PASSWORD=` con la tua password
 
 ---
 
 #### `weekly-backup.sh`
+
 Script wrapper che esegue entrambi i backup (Borg + Export).
 
 ```bash
@@ -61,12 +69,14 @@ Script wrapper che esegue entrambi i backup (Borg + Export).
 ```
 
 **Cosa fa:**
+
 1. Esegue `download-backup.sh` (Borg backup)
 2. Esegue `export-data.sh` (dati leggibili)
 3. Mostra riepilogo e dimensioni
 4. Log completo dell'operazione
 
 **Quando usarlo:**
+
 - Automaticamente ogni domenica 22:00 (via cron)
 - Manualmente quando vuoi backup completo
 
@@ -75,6 +85,7 @@ Script wrapper che esegue entrambi i backup (Borg + Export).
 ### ⚙️ Setup e Configurazione
 
 #### `setup-cron.sh`
+
 Configura il cron job per backup automatici settimanali.
 
 ```bash
@@ -82,6 +93,7 @@ Configura il cron job per backup automatici settimanali.
 ```
 
 **Cosa fa:**
+
 - Verifica che gli script esistano
 - Aggiunge cron job per domenica 22:00
 - Verifica se esiste già (evita duplicati)
@@ -89,12 +101,14 @@ Configura il cron job per backup automatici settimanali.
 - Verifica che il servizio cron sia attivo
 
 **Quando usarlo:**
+
 - Una tantum dopo il setup iniziale
 - Se vuoi cambiare orario backup (modifica lo script prima)
 
 ---
 
 #### `ssh-connect.sh`
+
 Connessione SSH rapida al server OCI.
 
 ```bash
@@ -102,11 +116,13 @@ Connessione SSH rapida al server OCI.
 ```
 
 **Cosa fa:**
+
 - Carica configurazione da `.env`
 - Verifica SSH key permissions
 - Connette al server OCI
 
 **Quando usarlo:**
+
 - Quando devi accedere al server
 - Per manutenzione
 - Per verificare backup remoti
@@ -114,6 +130,7 @@ Connessione SSH rapida al server OCI.
 ---
 
 #### `deploy-nextcloud.sh`
+
 Script iniziale per deployment Nextcloud AIO (già usato).
 
 ```bash
@@ -121,6 +138,7 @@ Script iniziale per deployment Nextcloud AIO (già usato).
 ```
 
 **Quando usarlo:**
+
 - Primo deployment (già fatto)
 - Reinstallazione completa
 
@@ -131,17 +149,20 @@ Script iniziale per deployment Nextcloud AIO (già usato).
 ### Setup Iniziale (fatto una volta)
 
 1. Configura `.env` con le tue credenziali:
+
    ```bash
    cp .env.example .env
    nano .env
    ```
 
 2. Setup cron per backup automatici:
+
    ```bash
    ./scripts/setup-cron.sh
    ```
 
 3. Test manuale primo backup:
+
    ```bash
    ./scripts/weekly-backup.sh
    ```
@@ -149,11 +170,13 @@ Script iniziale per deployment Nextcloud AIO (già usato).
 ### Uso Normale
 
 **Automatico:**
+
 - Backup settimanale domenica 22:00 (cron)
 - Nessun intervento richiesto
 - Controlla log: `tail -f /tmp/nextcloud-backup.log`
 
 **Manuale:**
+
 - Backup on-demand: `./scripts/weekly-backup.sh`
 - Solo export dati: `./scripts/export-data.sh`
 - Solo Borg: `./scripts/download-backup.sh`
@@ -202,6 +225,7 @@ ls -lh ~/nextcloud-exports/latest/
 **Problema:** Username o password errati.
 
 **Soluzione:**
+
 1. Apri `.env`
 2. Verifica `NEXTCLOUD_ADMIN_USER=IL_TUO_USERNAME`
 3. Verifica `NEXTCLOUD_ADMIN_PASSWORD=LA_TUA_PASSWORD`
@@ -212,6 +236,7 @@ ls -lh ~/nextcloud-exports/latest/
 **Problema:** Errore SSH o permessi.
 
 **Soluzione:**
+
 1. Verifica connessione: `./scripts/ssh-connect.sh`
 2. Verifica path SSH key in `.env`
 3. Verifica permessi: `chmod 600 ~/.ssh/TUA_CHIAVE`
@@ -221,6 +246,7 @@ ls -lh ~/nextcloud-exports/latest/
 **Problema:** Cron job non configurato o cron service non attivo.
 
 **Soluzione:**
+
 1. Verifica crontab: `crontab -l`
 2. Rimuovi e ricrea: `crontab -e` (cancella riga) poi `./scripts/setup-cron.sh`
 3. Verifica cron service: `systemctl status cron`
@@ -231,6 +257,7 @@ ls -lh ~/nextcloud-exports/latest/
 **Problema:** Disco pieno per backup.
 
 **Soluzione:**
+
 1. Verifica spazio: `df -h ~`
 2. Elimina vecchi export: `rm -rf ~/nextcloud-exports/OLD_DATE/`
 3. Elimina vecchi Borg: Vedi `docs/06-BACKUP-RESTORE.md`
@@ -240,6 +267,7 @@ ls -lh ~/nextcloud-exports/latest/
 ## 📚 Documentazione Completa
 
 Per informazioni dettagliate:
+
 - **Backup & Restore:** `docs/06-BACKUP-RESTORE.md`
 - **Security:** `docs/04-FIREWALL-SECURITY.md`
 - **Deployment:** `docs/05-NEXTCLOUD-DEPLOYMENT.md`

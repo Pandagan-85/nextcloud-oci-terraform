@@ -108,6 +108,7 @@ Internet
 **One command deploys everything!** Infrastructure as Code approach.
 
 **Prerequisites:**
+
 - Oracle Cloud account (free tier) with API credentials
 - Terraform installed locally
 - DuckDNS account (free)
@@ -133,6 +134,7 @@ terraform output  # Shows public IP, URLs, SSH command
 ```
 
 **What gets deployed automatically:**
+
 - ✅ OCI compute instance (4 OCPU ARM, 24GB RAM)
 - ✅ Persistent data volume (100GB, protected from destroy)
 - ✅ Network (VCN, subnet, security lists, internet gateway)
@@ -143,6 +145,7 @@ terraform output  # Shows public IP, URLs, SSH command
 - ✅ SSL certificates obtained automatically
 
 **Access your instance:**
+
 ```bash
 # Get connection info
 terraform output ssh_command
@@ -158,6 +161,7 @@ See: [`terraform/README.md`](terraform/README.md) for detailed guide.
 **For learning or custom setups.** Full control over each step.
 
 **Prerequisites:**
+
 - Oracle Cloud account (free tier)
 - Existing OCI instance (Ubuntu 24.04 LTS, ARM64)
 - SSH key pair
@@ -185,6 +189,7 @@ nano .env  # Add your instance IP, SSH key, DuckDNS credentials
 ```
 
 **Manual steps required:**
+
 1. Create OCI instance manually (VM.Standard.A1.Flex, 4 OCPU, 24GB RAM)
 2. Configure Security Lists (ports 22, 80, 443, 8080)
 3. Update system: [`docs/02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)
@@ -193,6 +198,7 @@ nano .env  # Add your instance IP, SSH key, DuckDNS credentials
 6. Deploy: [`docs/05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)
 
 **Access:**
+
 - Admin interface: `https://YOUR_IP:8080`
 - Nextcloud: `https://your-domain.duckdns.org`
 
@@ -224,6 +230,7 @@ Comprehensive step-by-step guides:
 Dual backup system for maximum data protection:
 
 ### Borg Backup (System-level)
+
 - **Automated**: Daily backups at 04:00 UTC via Nextcloud AIO
 - **Location**: `/mnt/backup/borg/` on OCI instance
 - **Retention**: 7 days
@@ -236,6 +243,7 @@ Dual backup system for maximum data protection:
   - App data
 
 ### Data Export (Human-readable)
+
 - **Automated**: Weekly export via cron (Sunday 22:00)
 - **Location**: `~/nextcloud-exports/` on local PC
 - **Formats**:
@@ -323,16 +331,19 @@ Common issues and solutions documented in:
 ## 🔮 Roadmap
 
 ### ✅ Completed (Phase 1 & 2)
+
 - [x] **Terraform automation for OCI provisioning** - Full IaC implementation
 - [x] **Automated backup system** - Borg + human-readable exports
 - [x] **Pets vs Cattle pattern** - Persistent data volume, recreatable compute
 - [x] **Production hardening** - Firewall, Fail2ban, SSL, security headers
 
 ### 🚧 In Progress (Phase 3)
+
 - [ ] **CI/CD with GitHub Actions** - Automated testing and deployment
 - [ ] **Monitoring with Prometheus + Grafana** - Metrics and alerting
 
 ### 📋 Planned (Phase 4+)
+
 - [ ] **Remote backup to cloud storage** - Off-site backup to OCI Object Storage
 - [ ] **Automated data migration scripts** - Easy migration between instances
 - [ ] **High availability setup** - Multi-region deployment (beyond free tier)

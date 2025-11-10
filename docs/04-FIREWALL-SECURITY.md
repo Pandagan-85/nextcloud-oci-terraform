@@ -13,6 +13,7 @@ Configurazione firewall UFW e protezione SSH con Fail2ban.
 **ATTENZIONE**: Configurare il firewall in modo errato può bloccare la connessione SSH!
 
 **Regola d'oro**:
+
 1. **PRIMA** permetti SSH (porta 22)
 2. **POI** abilita il firewall
 3. **SOLO DOPO** aggiungi altre regole
@@ -49,6 +50,7 @@ sudo ufw show added
 ```
 
 **Dovrebbe mostrare**:
+
 ```
 ufw allow 22/tcp comment 'SSH'
 ```
@@ -78,6 +80,7 @@ sudo ufw show added
 ```
 
 **Dovrebbe mostrare almeno**:
+
 ```
 ufw allow 22/tcp
 ufw allow 80/tcp
@@ -92,6 +95,7 @@ sudo ufw enable
 ```
 
 Ti chiederà conferma:
+
 ```
 Command may disrupt existing ssh connections. Proceed with operation (y|n)?
 ```
@@ -109,6 +113,7 @@ sudo ufw status numbered
 ```
 
 **Output atteso**:
+
 ```
 Status: active
 
@@ -202,6 +207,7 @@ sudo fail2ban-client status sshd
 ```
 
 **Output atteso**:
+
 ```
 Status for the jail: sshd
 |- Filter
@@ -246,11 +252,13 @@ sudo tail -30 /var/log/fail2ban.log
 ```
 
 Verifica il ban:
+
 ```bash
 sudo fail2ban-client status sshd
 ```
 
 Rimuovi un ban manualmente (se serve):
+
 ```bash
 sudo fail2ban-client set sshd unbanip IP_ADDRESS
 ```
@@ -317,6 +325,7 @@ echo ""
 ```
 
 **Checklist sicurezza**:
+
 - ✅ UFW attivo e configurato
 - ✅ SSH (22) permesso
 - ✅ HTTP (80) e HTTPS (443) permessi
@@ -331,6 +340,7 @@ echo ""
 **Causa**: Porta 22 non permessa
 
 **Soluzione** (dalla console OCI):
+
 ```bash
 sudo ufw allow 22/tcp
 sudo ufw reload
@@ -341,6 +351,7 @@ sudo ufw reload
 **Causa**: Log path errato o filtro non funzionante
 
 **Soluzione**:
+
 ```bash
 # Verifica log path
 ls -la /var/log/auth.log
@@ -352,11 +363,13 @@ sudo fail2ban-regex /var/log/auth.log /etc/fail2ban/filter.d/sshd.conf
 ### Voglio whitelistare il mio IP
 
 Aggiungi a `/etc/fail2ban/jail.local` sotto `[DEFAULT]`:
+
 ```ini
 ignoreip = 127.0.0.1/8 ::1 YOUR_IP_ADDRESS
 ```
 
 Poi:
+
 ```bash
 sudo systemctl restart fail2ban
 ```
@@ -364,18 +377,21 @@ sudo systemctl restart fail2ban
 ## Security Best Practices
 
 1. **Monitoraggio regolare**:
+
    ```bash
    sudo fail2ban-client status sshd
    sudo tail -f /var/log/fail2ban.log
    ```
 
 2. **Backup configurazione**:
+
    ```bash
    sudo cp /etc/fail2ban/jail.local /etc/fail2ban/jail.local.backup
    sudo cp /etc/ufw/user.rules /etc/ufw/user.rules.backup
    ```
 
 3. **Update regolari**:
+
    ```bash
    sudo apt update && sudo apt upgrade fail2ban ufw
    ```
