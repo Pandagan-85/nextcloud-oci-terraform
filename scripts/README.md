@@ -6,9 +6,113 @@ Questa directory contiene tutti gli script per gestire backup, export dati e man
 
 ### 🔐 Backup e Export
 
-#### `download-backup.sh`
+#### `local-backup-sync.sh` ⭐ **NUOVO - Raccomandato**
+
+Script completo e automatizzato per sincronizzazione backup Borg su PC locale.
+
+```bash
+./scripts/local-backup-sync.sh
+# O crea link simbolico:
+ln -s ~/Projects/nextcloud-oci-terraform/scripts/local-backup-sync.sh ~/bin/nextcloud-backup
+nextcloud-backup
+```
+
+**Cosa fa:**
+
+- 📥 Sincronizza backup dal server via rsync (solo differenze)
+- ✅ Verifica integrità automatica con `borg check`
+- 📋 Lista tutti i backup disponibili
+- 📊 Mostra statistiche repository (spazio, compressione, deduplica)
+- 🎯 Identifica automaticamente backup più recente
+- 💾 Opzione estrazione interattiva con gestione directory esistenti
+- 🔓 Fix permessi automatico (`chown`)
+- 📝 Logging completo delle operazioni
+- 🎨 Output colorato e user-friendly
+
+**Modalità disponibili:**
+
+```bash
+nextcloud-backup              # Interattivo (sync + chiede estrazione)
+nextcloud-backup --sync-only  # Solo sincronizza (per cron)
+nextcloud-backup --extract-only  # Solo estrai ultimo
+nextcloud-backup --help       # Mostra help completo
+```
+
+**Quando usarlo:**
+
+- ✅ Setup automazione backup locale (preferito rispetto a `download-backup.sh`)
+- ✅ Sincronizzazione settimanale automatica via cron
+- ✅ Download ed estrazione rapida ultimo backup
+- ✅ Verifica integrità periodica
+
+**Automazione con cron:**
+
+```bash
+# Setup cron per sync settimanale automatico
+crontab -e
+
+# Aggiungi:
+0 22 * * 0 $HOME/bin/nextcloud-backup --sync-only >> $HOME/nextcloud-backup-cron.log 2>&1
+```
+
+**Documentazione completa**: `docs/10-LOCAL-BACKUP-MANAGEMENT.md`
+
+**Prerequisiti:**
+
+- `borgbackup` installato: `sudo dnf install borgbackup`
+- `BORG_PASSPHRASE` configurata in `~/.bash_profile`
+- Accesso SSH al server OCI
+
+---
+
+#### `create-backup.sh`
+
+Crea un backup manuale immediato sul server OCI.
+
+```bash
+./scripts/create-backup.sh
+# O con download automatico:
+./scripts/create-backup.sh --download
+```
+
+**Cosa fa:**
+
+- 🎯 Trigger manuale del processo di backup Borg su OCI
+- ⏱️ Mostra log iniziali del processo di backup
+- 🔄 Opzionale: attende completamento e scarica backup (`--download`)
+- ✅ Verifica e riavvia automaticamente i container Nextcloud dopo backup
+- 📊 Mostra stato backup e progress
+- ⏳ Timeout 20 minuti con controlli ogni 30 secondi
+
+**Quando usarlo:**
+
+- Prima di update importanti di Nextcloud
+- Prima di modifiche significative al sistema
+- Quando serve backup "su richiesta" fuori dallo scheduling
+- Per testare il processo di backup manualmente
+
+**Modalità disponibili:**
+
+```bash
+./scripts/create-backup.sh              # Solo crea backup, mostra istruzioni download
+./scripts/create-backup.sh --download   # Crea + attende + scarica automaticamente
+```
+
+**⚠️ Importante:**
+
+- Il backup richiede 5-15 minuti per completare
+- I container Nextcloud vengono fermati durante il backup
+- Lo script verifica e riavvia i container automaticamente
+
+---
+
+#### `download-backup.sh` (Legacy - Path Obsoleta)
 
 Scarica i backup Borg dal server OCI al PC locale.
+
+⚠️ **ATTENZIONE**: Questo script usa la vecchia path `/mnt/backup/borg/` che non è più corretta.
+La path corretta è `/mnt/nextcloud-data/borg-backups/` (volume persistente).
+**Usa invece `local-backup-sync.sh` che è aggiornato e più completo.**
 
 ```bash
 ./scripts/download-backup.sh
@@ -16,7 +120,7 @@ Scarica i backup Borg dal server OCI al PC locale.
 
 **Cosa fa:**
 
-- Scarica backup Borg encrypted da `/mnt/backup/borg/` (su OCI)
+- ❌ Scarica backup da `/mnt/backup/borg/` (path OBSOLETA!)
 - Salva in `~/nextcloud-backups/` (su PC locale)
 - Usa rsync per transfer efficiente (solo differenze)
 - Mostra spazio disponibile e dimensione backup
@@ -24,9 +128,8 @@ Scarica i backup Borg dal server OCI al PC locale.
 
 **Quando usarlo:**
 
-- Settimanalmente (automatico con cron)
-- Prima di update importanti
-- Quando vuoi copia locale dei backup
+- ❌ **NON usare** - Path obsoleta
+- ✅ **Usa invece** `local-backup-sync.sh`
 
 ---
 
@@ -141,6 +244,108 @@ Script iniziale per deployment Nextcloud AIO (già usato).
 
 - Primo deployment (già fatto)
 - Reinstallazione completa
+
+---
+
+#### `generate-config.sh`
+
+Genera il Caddyfile da template .env per reverse proxy.
+
+```bash
+./scripts/generate-config.sh
+```
+
+**Cosa fa:**
+
+- 📄 Genera `docker/Caddyfile` da configurazione .env
+- 🌐 Configura reverse proxy per Nextcloud (dominio principale)
+- 📊 Configura reverse proxy per Grafana (sottodominio monitoring)
+- 🔒 Applica security headers (HSTS, X-Frame-Options, ecc.)
+- 📝 Configura logging per accessi
+- ⚡ Abilita compressione gzip
+
+**Quando usarlo:**
+
+- Dopo aver modificato `DUCKDNS_DOMAIN` in `.env`
+- Quando aggiungi nuovi servizi al reverse proxy
+- Per rigenerare Caddyfile dopo modifiche
+- Prima del primo deployment
+
+**⚠️ Importante:**
+
+- Richiede `DUCKDNS_DOMAIN` configurato in `.env`
+- Aggiungere sottodominio `monitoring.TUODOMINIO` a DuckDNS
+- Configurare `GRAFANA_ADMIN_PASSWORD` prima del deployment
+
+---
+
+#### `duckdns-update.sh`
+
+Aggiorna il record DNS di DuckDNS con l'IP del server OCI.
+
+```bash
+./scripts/duckdns-update.sh
+```
+
+**Cosa fa:**
+
+- 🌐 Aggiorna DNS DuckDNS con IP corrente del server
+- ✅ Verifica successo operazione
+- 📊 Mostra domain e IP configurati
+
+**Quando usarlo:**
+
+- Dopo deploy Terraform (IP potrebbe cambiare)
+- Se l'IP pubblico del server OCI cambia
+- Per testare configurazione DuckDNS
+- Manualmente se DNS non si aggiorna
+
+**Prerequisiti:**
+
+- `DUCKDNS_DOMAIN` configurato in `.env`
+- `DUCKDNS_TOKEN` configurato in `.env`
+- `OCI_INSTANCE_IP` configurato in `.env`
+
+---
+
+#### `setup-precommit.sh`
+
+Configura pre-commit hooks per qualità del codice.
+
+```bash
+./scripts/setup-precommit.sh
+```
+
+**Cosa fa:**
+
+- 🔧 Installa `pre-commit` (Python package)
+- 🪝 Configura git hooks automatici
+- ✨ Abilita formattazione automatica prima di ogni commit:
+  - Terraform formatting (`terraform fmt`)
+  - Shell script linting (`shellcheck`)
+  - Markdown linting (`markdownlint`)
+  - YAML syntax checking
+  - Secret detection (`gitleaks`)
+  - Trailing whitespace cleanup
+- 🧪 Esegue check iniziale su tutti i file
+
+**Quando usarlo:**
+
+- Una volta dopo il clone del repository
+- Per mantenere qualità del codice
+- Prima di contribuire al progetto
+
+**Prerequisiti:**
+
+- Python 3 installato
+- pip3 installato
+
+**Comandi utili:**
+
+```bash
+pre-commit run --all-files    # Run manualmente su tutti i file
+git commit --no-verify         # Skip hooks (sconsigliato)
+```
 
 ---
 
@@ -268,10 +473,34 @@ ls -lh ~/nextcloud-exports/latest/
 
 Per informazioni dettagliate:
 
+- **⭐ Local Backup Management:** `docs/10-LOCAL-BACKUP-MANAGEMENT.md` (automazione + comandi avanzati)
 - **Backup & Restore:** `docs/06-BACKUP-RESTORE.md`
 - **Security:** `docs/04-FIREWALL-SECURITY.md`
 - **Deployment:** `docs/05-NEXTCLOUD-DEPLOYMENT.md`
+- **Terraform Strategy:** `docs/08-TERRAFORM-STRATEGY.md`
+- **SSL Production Switch:** `SSL-PRODUCTION-SWITCH.md`
 
 ---
 
-_Last updated: November 2025_
+## 📜 Lista Completa Scripts
+
+### Backup & Export
+
+- ⭐ `local-backup-sync.sh` - Sync automatico backup Borg + estrazione (raccomandato)
+- `create-backup.sh` - Backup manuale on-demand su OCI
+- `download-backup.sh` - Download backup Borg da OCI (legacy)
+- `export-data.sh` - Export calendari/contatti in formato leggibile
+- `weekly-backup.sh` - Wrapper per backup completo settimanale
+
+### Setup & Configurazione
+
+- `setup-cron.sh` - Configura automazione backup settimanali
+- `generate-config.sh` - Genera Caddyfile da .env template
+- `duckdns-update.sh` - Aggiorna DNS DuckDNS
+- `setup-precommit.sh` - Setup git hooks per code quality
+- `deploy-nextcloud.sh` - Deployment iniziale Nextcloud AIO
+- `ssh-connect.sh` - Connessione SSH rapida al server
+
+---
+
+_Last updated: 11 November 2025_

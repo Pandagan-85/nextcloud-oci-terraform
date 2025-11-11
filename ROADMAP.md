@@ -2,7 +2,7 @@
 
 Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
-**Ultimo aggiornamento**: 10 Novembre 2025
+**Ultimo aggiornamento**: 11 Novembre 2025
 
 ---
 
@@ -79,13 +79,13 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] **Setup cron automation** (`setup-cron.sh` - domenica 22:00) ✅ **CONFIGURATO**
 - [x] **Cron job attivo** (verifica: `crontab -l`)
 - [x] Documentazione procedura disaster recovery (`docs/06-BACKUP-RESTORE.md`)
-- [ ] Test restore completo da backup - *Opzionale*
-- [ ] Test disaster recovery completo - *Opzionale*
+- [ ] Test restore completo da backup - _Opzionale_
+- [ ] Test disaster recovery completo - _Opzionale_
 
 ### Testing & Validation
 
-- [ ] Test sincronizzazione dispositivi (iPad, iPhone) - *Pianificato domani*
-- [x] Test desktop client (Fedora) - *In corso*
+- [ ] Test sincronizzazione dispositivi (iPad, iPhone) - _Pianificato domani_
+- [x] Test desktop client (Fedora) - _In corso_
 - [x] Verifica consumo risorse: **~1GB RAM** di 24GB (ottimizzato!)
 - [x] Test funzionalità core (Calendar, Contacts, Files)
 - [x] Test app Collabora/Office
@@ -127,11 +127,20 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] UFW + Fail2ban setup
   - [x] DuckDNS auto-update
   - [x] Nextcloud AIO + Caddy auto-deploy
+  - [x] **GitHub repository auto-clone** - Configuration sempre aggiornata
+  - [x] Monitoring stack auto-deploy (Prometheus + Grafana + Exporters)
 - [x] **Multi-environment setup** (`test.tfvars`, `prod.tfvars`)
 - [x] **Testing completo su TEST environment**
 - [x] **Deploy e test su PROD environment**
 - [x] **Validazione destroy/apply cycle** - Backup persistenti ✅
+- [x] **Test disaster recovery completo** (3 cicli destroy/apply testati)
+  - [x] DNS propagation verificata
+  - [x] SSL certificate renewal testato (Let's Encrypt staging)
+  - [x] Data persistence confermata (block volume protected)
 - [x] **Documentazione Terraform** (`terraform/README.md`, `docs/08-TERRAFORM-STRATEGY.md`)
+  - [x] Disaster Recovery procedures documentate
+  - [x] Workflow operativi (git pull vs destroy/apply)
+  - [x] Troubleshooting completo (SSL rate limit, DNS, cloud-init)
 
 ### Configuration Management
 
@@ -139,8 +148,8 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] **Automatizzazione deploy Nextcloud stack** - FATTO via `cloud-init.yaml`
 - [x] **Automatizzazione firewall + security** - FATTO (UFW + Fail2ban via cloud-init)
 - [x] **Automatizzazione DuckDNS update** - FATTO via cloud-init
-- [ ] Ansible playbook per system setup - *Non necessario (cloud-init è sufficiente)*
-- [ ] Idempotency testing - *Opzionale*
+- [ ] Ansible playbook per system setup - _Non necessario (cloud-init è sufficiente)_
+- [ ] Idempotency testing - _Opzionale_
 
 ### CI/CD Pipeline ✅ COMPLETATA
 
@@ -153,7 +162,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] Init + Validate
   - [x] tfsec security scanning
   - [x] Trivy IaC vulnerability scanning
-- [ ] Terraform apply su merge - *Non implementato by design (deploy manuale)*
+- [ ] Terraform apply su merge - _Non implementato by design (deploy manuale)_
 - [x] **Automated testing completo**
   - [x] YAML linting (yamllint)
   - [x] Docker Compose validation
@@ -183,18 +192,62 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-## 🔮 FASE 4: ADVANCED FEATURES - FUTURO
+## ⏳ FASE 4: MONITORING & OBSERVABILITY - IN CORSO
 
-### Monitoring & Observability
+### Monitoring Stack ✅ COMPLETATO
 
-- [ ] Prometheus setup per metriche
-- [ ] Grafana dashboard
-  - [ ] System resources (CPU, RAM, disk)
-  - [ ] Docker containers metrics
-  - [ ] Nextcloud application metrics
-  - [ ] Caddy/SSL metrics
+- [x] **Prometheus setup per metriche** (`docker/monitoring/prometheus.yml`)
+  - [x] 30 giorni retention
+  - [x] Scrape interval 15s
+  - [x] Job configuration per tutti i servizi
+- [x] **Grafana dashboard** (`docker/docker-compose.yml`)
+  - [x] Auto-provisioned Prometheus datasource
+  - [x] SSL reverse proxy via Caddy (monitoring.YOUR_DOMAIN.duckdns.org)
+  - [x] Password protection configurata
+- [x] **Node Exporter** - System metrics
+  - [x] CPU, RAM, disk, network
+  - [x] Filesystem monitoring
+  - [x] System load metrics
+- [x] **cAdvisor** - Docker container metrics
+  - [x] Container resource usage
+  - [x] Per-container CPU/memory/network
+  - [x] Docker events tracking
+- [x] **Caddy metrics endpoint** (`:2019/metrics`)
+  - [x] HTTP request metrics
+  - [x] SSL certificate expiry
+  - [x] Response times
+- [x] **Monitoring network isolation** - Secure by default
+  - [x] Prometheus, Grafana, exporters su rete `monitoring`
+  - [x] Localhost-only bindings (solo Grafana esposta via HTTPS)
+- [x] **Auto-deployment via cloud-init** - Monitoring sempre presente
+
+### Dashboard & Visualization 🚧 IN CORSO
+
+- [x] Grafana accessibile su `https://monitoring.YOUR_DOMAIN.duckdns.org`
+- [x] Import dashboard ID 179 (Docker Container & Host Metrics)
+- [x] Import dashboard ID 11074 (Node Exporter Full)
+- [x] Custom dashboard per Nextcloud-specific metrics
+- [x] Dashboard per Caddy reverse proxy metrics
+
+### Alerting & Notifications 📋 PIANIFICATO
+
 - [ ] Alert manager configuration
-- [ ] Log aggregation (opzionale)
+- [ ] Critical alerts:
+  - [ ] Disk space < 20%
+  - [ ] Memory usage > 90%
+  - [ ] Container down/restarting
+  - [ ] SSL certificate expiry < 7 days
+- [ ] Notification channels (email, webhook)
+
+### Advanced Observability 🔮 FUTURO
+
+- [ ] Log aggregation (Loki + Promtail)
+- [ ] Distributed tracing (opzionale)
+- [ ] Application Performance Monitoring
+
+---
+
+## 🔮 FASE 5: ADVANCED FEATURES - FUTURO
 
 ### High Availability & Scalability
 
@@ -233,91 +286,90 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Security hardening completo
 - [x] Backup testati e funzionanti (dual system: Borg + exports)
 - [x] Documentazione completa
-- [ ] Monitoring base attivo - *FASE 4*
+- [x] **Monitoring base attivo** - Prometheus + Grafana deployati
 
 ### Portfolio Ready ✅ COMPLETATO
 
 - [x] Terraform struttura completa (IaC pattern production-grade)
 - [x] Terraform testato su deployment reale (test + prod environments)
 - [x] **CI/CD pipeline attiva** (GitHub Actions con 3 workflows)
-- [ ] Monitoring avanzato - *FASE 4*
-- [ ] Demo/screenshots - *Opzionale*
+- [x] **Monitoring stack deployato** - Prometheus + Grafana + Exporters
+- [x] **Disaster Recovery testato** - 3 cicli destroy/apply completati
+- [x] Monitoring dashboards configurati - _In corso_
+- [ ] Demo/screenshots - _Opzionale_
 
 ### Production Grade (Lungo termine)
 
 - [ ] HA setup
-- [ ] Disaster recovery testato
-- [ ] Monitoring completo con alerting
+- [x] **Disaster recovery testato** - Funzionante (3 test cycles)
+- [ ] Monitoring completo con alerting e dashboards
 - [ ] Security audit completato
 
 ---
 
 ## 🎯 Next Immediate Actions
 
-### ✅ Completato Oggi (8 Nov 2025)
+### ✅ Completato (10-11 Nov 2025)
 
-1. ✅ **Configurato cron backup** - Backup automatici ogni domenica 22:00
-2. ✅ **2FA abilitato** - TOTP configurato
-3. ✅ **App Passwords create** - Dispositivi protetti
-4. ✅ **Terraform struttura preparata** - IaC con storage separato pronto
+1. ✅ **Monitoring stack deployato** - Prometheus + Grafana + Node Exporter + cAdvisor
+2. ✅ **Cloud-init con GitHub clone** - Configuration auto-update da repo
+3. ✅ **Disaster recovery testato** - 3 cicli destroy/apply completati con successo
+4. ✅ **DNS wildcard configurato** - monitoring.YOUR_DOMAIN.duckdns.org funzionante
+5. ✅ **Documentazione workflow operativi** - git pull vs destroy/apply
+6. ✅ **SSL staging configuration** - Let's Encrypt rate limit bypassato
+7. ✅ **Grafana password configurata** - Login protetto
+
+### 🚧 In Corso (11 Nov 2025)
+
+1. **Monitoring Dashboards** ⏱️ 30 min
+
+   - [x] Accesso Grafana verificato (`https://monitoring.YOUR_DOMAIN.duckdns.org`)
+   - [x] Import Dashboard ID 179 (Docker Container & Host Metrics)
+   - [x] Import Dashboard ID 11074 (Node Exporter Full)
+   - [x] Verifica metriche Nextcloud, Caddy, containers
+
+2. **SSL Production Certificates** ⏱️ 2 min (martedì 11 Nov 21:04 CET)
+   - [ ] Rimuovere staging configuration da Caddyfile (righe 1-3)
+   - [ ] Restart Caddy: `docker compose restart caddy-reverse-proxy`
+   - [ ] Verifica certificati production: `openssl s_client -connect YOUR_DOMAIN.duckdns.org:443`
+   - [ ] Test sync dispositivi mobili (dopo SSL production)
 
 ### Prossimi Step (Questa settimana)
 
-**📋 IMPORTANTE: Seguire piano dettagliato in `TERRAFORM-MIGRATION-PLAN.md`**
+3. **Monitoring Alerting** ⏱️ 1-2 ore
 
-1. **Domenica 10 Nov - Verifica primo backup automatico** ⏱️ 5 min
+   - [ ] Configurare Alertmanager
+   - [ ] Alert critici (disk space, memory, containers down)
+   - [ ] Notification channels (email/webhook)
 
-   ```bash
-   tail -f /tmp/nextcloud-backup.log
-   ls -lh ~/nextcloud-backups/
-   ls -lh ~/nextcloud-exports/latest/
-   ```
+4. **Test Sincronizzazione Completo** ⏱️ 30 min
 
-2. **Settimana 1 (9-15 Nov): Test Terraform** ⏱️ 2-3 ore
-   - [ ] Raccogliere credenziali OCI (tenancy OCID, user OCID, fingerprint)
-   - [ ] Compilare `terraform/terraform.tfvars`
-   - [ ] Backup completo manuale pre-test
-   - [ ] `terraform init && terraform plan`
-   - [ ] Deploy test instance (nome diverso da prod!)
-   - [ ] **Test critico: destroy/recreate per verificare data persistence**
-   - [ ] Documentare risultati in `terraform/TEST-RESULTS.md`
-   - [ ] Cleanup test instance
+   - [ ] Test CalDAV/CardDAV da iPad/iPhone
+   - [ ] Test client desktop Nextcloud
+   - [ ] Verifica modifiche calendari/contatti sync bidirezionale
 
-   **Guida**: `TERRAFORM-MIGRATION-PLAN.md` - Fase 1
+5. **Portfolio Finalization** ⏱️ 1-2 ore
+   - [ ] Screenshot monitoring dashboards
+   - [ ] Screenshot architettura completa
+   - [ ] README update con monitoring stack
+   - [ ] Blog post/writeup (opzionale)
 
-3. **Test sincronizzazione dispositivi** ⏱️ 20 min
-   - Verificare CalDAV/CardDAV funzionanti
-   - Test modifiche calendari e contatti
-   - Verificare 2FA e App Passwords su tutti dispositivi
+### Note Operative
 
-### Prossime Settimane (FASE 3 completamento)
+**Stato SSL Certificates:**
 
-4. **Settimana 2 (16-22 Nov): Migrazione Produzione** ⏱️ 3-4 ore totali (spalmato su 7 giorni)
-   - [ ] Backup completo finale pre-migrazione
-   - [ ] Deploy nuova istanza produzione con Terraform
-   - [ ] Upload backup Borg alla nuova
-   - [ ] Restore da backup via AIO interface
-   - [ ] Test completo (login, dati, 1 dispositivo)
-   - [ ] **Switch DNS** (downtime 10-15 min)
-   - [ ] Monitor stabilità 3-7 giorni
-   - [ ] Destroy vecchia istanza
-   - [ ] Update docs con risultati reali
+- **Attuale**: Let's Encrypt Staging (non trusted, warning browser)
+- **Impatto**: Sync dispositivi NON funziona (app Nextcloud rifiutano cert staging)
+- **Soluzione**: Rimuovere staging 11 Nov 21:04 CET (quando rate limit scade)
+- **Workaround temporaneo**: Accesso solo via browser web (bypass manuale warning)
 
-   **Guida Completa**: `TERRAFORM-MIGRATION-PLAN.md` - Fase 2
+**Monitoring Access:**
 
-5. **Post-Migrazione: Portfolio Finalization** ⏱️ 2-3 ore
-   - Screenshots infrastruttura
-   - Documentare disaster recovery testato
-   - README update con deployment reale
-
-6. **✅ COMPLETATO: CI/CD pipeline** - GitHub Actions
-   - [x] Main CI workflow (ci.yml) con staged pipeline
-   - [x] Scheduled security scans (security-deep.yml, docker-image-scan.yml)
-   - [x] Pre-commit hooks per auto-formattazione
-   - [x] Branch protection rules documented
-   - [x] Documentazione completa (docs/09-CICD-MONITORING.md)
-
-7. **[FASE 4] Monitoring** - Prometheus + Grafana (prossimo step)
+- Grafana: `https://monitoring.YOUR_DOMAIN.duckdns.org` (bypass SSL warning per ora)
+- Prometheus: `http://localhost:9090` (SSH tunnel: `ssh -L 9090:localhost:9090 ubuntu@IP`)
+- Node Exporter: `http://localhost:9100` (metrics endpoint)
+- cAdvisor: `http://localhost:8081` (container stats)
+- Caddy metrics: `http://localhost:2019/metrics`
 
 ---
 
@@ -371,4 +423,4 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-*Ultimo aggiornamento: 10 Novembre 2025*
+_Ultimo aggiornamento: 11 Novembre 2025_

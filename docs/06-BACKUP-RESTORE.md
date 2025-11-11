@@ -7,11 +7,13 @@ Guida completa per backup e disaster recovery di Nextcloud AIO.
 ### Strategia 3-2-1 Backup
 
 - **3 copie** dei dati:
+
   1. Dati originali su Nextcloud (OCI)
-  2. Backup locale su OCI (`/mnt/backup/borg/`)
+  2. Backup locale su OCI (`/mnt/nextcloud-data/borg-backups/` - volume persistente)
   3. Backup offline sul tuo PC (`~/nextcloud-backups/`)
 
 - **2 tipi** di media:
+
   - SSD OCI (cloud)
   - Disco locale PC
 
@@ -24,14 +26,16 @@ Guida completa per backup e disaster recovery di Nextcloud AIO.
 
 ### Configurazione attuale
 
-| Parametro | Valore |
-|-----------|--------|
-| **Location** | `/mnt/backup/borg/` (su OCI) |
-| **Frequenza** | Giornaliera alle 04:00 UTC (05:00 Italia) |
-| **Retention** | 7 giorni |
-| **Encryption** | Sì (password required) |
-| **Compression** | Sì |
-| **Tool** | BorgBackup |
+| Parametro       | Valore                                                          |
+| --------------- | --------------------------------------------------------------- |
+| **Location**    | `/mnt/nextcloud-data/borg-backups/` (volume persistente su OCI) |
+| **Frequenza**   | Giornaliera alle 04:00 UTC (05:00 Italia)                       |
+| **Retention**   | 7 giorni                                                        |
+| **Encryption**  | Sì (password required)                                          |
+| **Compression** | Sì                                                              |
+| **Tool**        | BorgBackup                                                      |
+
+⚠️ **IMPORTANTE**: I backup sono sul **volume persistente** (`/mnt/nextcloud-data/`), quindi sopravvivono al destroy/recreate dell'istanza compute. Il volume ha `prevent_destroy = true` per protezione totale.
 
 ### Cosa viene backuppato
 
@@ -86,7 +90,7 @@ mkdir -p ~/nextcloud-backups
 rsync -avzh --progress \
   -e "ssh -i ~/.ssh/TUA_CHIAVE" \
   --rsync-path="sudo rsync" \
-  ubuntu@YOUR_IP:/mnt/backup/borg/ \
+  ubuntu@YOUR_IP:/mnt/nextcloud-data/borg-backups/ \
   ~/nextcloud-backups/
 ```
 
@@ -173,7 +177,7 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 
 **Files**:
 
-- WebDAV: `https://pandagan-oci.duckdns.org/remote.php/dav/files/USERNAME/`
+- WebDAV: `https://YOUR-DOMAIN.duckdns.org/remote.php/dav/files/USERNAME/`
 - Desktop client: <https://nextcloud.com/install/#install-clients>
 
 ---
@@ -210,7 +214,7 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 
 ```bash
 # Sull'istanza OCI via SSH
-cd /mnt/backup/borg
+cd /mnt/nextcloud-data/borg-backups
 
 # Lista backup disponibili
 sudo borg list .
@@ -237,7 +241,7 @@ sudo borg extract ::nextcloud-aio_20251107-190000
 
    ```bash
    rsync -avzh ~/nextcloud-backups/ \
-     ubuntu@NEW_IP:/mnt/backup/borg/
+     ubuntu@NEW_IP:/mnt/nextcloud-data/borg-backups/
    ```
 
 4. **Restore** via interfaccia AIO (Scenario A)
@@ -258,7 +262,7 @@ cd /tmp
 mkdir restore-test
 
 # Extract solo alcuni file dal backup
-sudo borg extract /mnt/backup/borg::BACKUP_NAME \
+sudo borg extract /mnt/nextcloud-data/borg-backups::BACKUP_NAME \
   --strip-components 3 \
   path/to/specific/file
 ```
@@ -279,13 +283,13 @@ Usa interfaccia AIO → "Restore from backup" → Seleziona backup precedente.
 
 ```bash
 # Lista backup
-sudo borg list /mnt/backup/borg/
+sudo borg list /mnt/nextcloud-data/borg-backups/
 
 # Info ultimo backup
-sudo borg info /mnt/backup/borg/::BACKUP_NAME
+sudo borg info /mnt/nextcloud-data/borg-backups/::BACKUP_NAME
 
 # Verifica integrità
-sudo borg check /mnt/backup/borg/
+sudo borg check /mnt/nextcloud-data/borg-backups/
 ```
 
 ### Verifica via interfaccia AIO
@@ -370,7 +374,7 @@ Configurazione attuale (7 giorni) è buona per uso personale.
 df -h /mnt/backup
 
 # Elimina backup vecchi manualmente
-sudo borg delete /mnt/backup/borg/::OLD_BACKUP_NAME
+sudo borg delete /mnt/nextcloud-data/borg-backups/::OLD_BACKUP_NAME
 ```
 
 **Errore: Password incorrect**
@@ -387,7 +391,7 @@ Verifica password salvata:
 
 ```bash
 # Lista backup disponibili
-sudo borg list /mnt/backup/borg/
+sudo borg list /mnt/nextcloud-data/borg-backups/
 
 # Usa nome esatto dall'output
 ```
@@ -396,10 +400,10 @@ sudo borg list /mnt/backup/borg/
 
 ```bash
 # Verifica integrità
-sudo borg check /mnt/backup/borg/
+sudo borg check /mnt/nextcloud-data/borg-backups/
 
 # Repair se possibile
-sudo borg check --repair /mnt/backup/borg/
+sudo borg check --repair /mnt/nextcloud-data/borg-backups/
 ```
 
 ---
@@ -408,31 +412,31 @@ sudo borg check --repair /mnt/backup/borg/
 
 ```bash
 # Lista tutti i backup
-sudo borg list /mnt/backup/borg/
+sudo borg list /mnt/nextcloud-data/borg-backups/
 
 # Info dettagliate backup
-sudo borg info /mnt/backup/borg/::BACKUP_NAME
+sudo borg info /mnt/nextcloud-data/borg-backups/::BACKUP_NAME
 
 # Verifica integrità
-sudo borg check /mnt/backup/borg/
+sudo borg check /mnt/nextcloud-data/borg-backups/
 
 # Lista file in backup
-sudo borg list /mnt/backup/borg/::BACKUP_NAME
+sudo borg list /mnt/nextcloud-data/borg-backups/::BACKUP_NAME
 
 # Cerca file specifico
-sudo borg list /mnt/backup/borg/::BACKUP_NAME | grep "filename"
+sudo borg list /mnt/nextcloud-data/borg-backups/::BACKUP_NAME | grep "filename"
 
 # Estrai singolo file
-sudo borg extract /mnt/backup/borg/::BACKUP_NAME path/to/file
+sudo borg extract /mnt/nextcloud-data/borg-backups/::BACKUP_NAME path/to/file
 
 # Dimensione repository
-sudo borg info /mnt/backup/borg/ | grep "All archives"
+sudo borg info /mnt/nextcloud-data/borg-backups/ | grep "All archives"
 
 # Elimina backup vecchio
-sudo borg delete /mnt/backup/borg/::BACKUP_NAME
+sudo borg delete /mnt/nextcloud-data/borg-backups/::BACKUP_NAME
 
 # Compatta repository (recupera spazio)
-sudo borg compact /mnt/backup/borg/
+sudo borg compact /mnt/nextcloud-data/borg-backups/
 ```
 
 ---

@@ -496,7 +496,7 @@ nextcloud_db
 **I dispositivi vedono:**
 
 ```
-1. Tentano connessione: pandagan-oci.duckdns.org
+1. Tentano connessione: your-domain.duckdns.org
 2. DNS risolve nuovo IP (DuckDNS aggiorna)
 3. Inviano password app esistente
 4. Nextcloud verifica nel database (restored)
@@ -758,6 +758,495 @@ tags = {
 
 ---
 
+## 🧪 Disaster Recovery: Procedura Testata
+
+**Data test**: 10 Novembre 2025
+**Obiettivo**: Verificare deploy completo con monitoring stack via cloud-init automation
+
+### Pre-requisiti
+
+1. ✅ Repository GitHub aggiornata con:
+
+   - docker-compose.yml (con monitoring stack)
+   - Cloud-init che clona repo automaticamente
+   - Fix critici (GRAFANA_ADMIN_PASSWORD con `$`)
+
+2. ✅ Certificati SSL: awareness rate limit Let's Encrypt (5/settimana)
+
+### Procedura Step-by-Step
+
+#### 1. Destroy Istanza (Preserva Dati)
+
+```bash
+cd terraform/
+
+# Destroy SOLO istanza VM (non volume dati!)
+terraform destroy -var-file=prod.tfvars \
+  -target=oci_core_instance.nextcloud \
+  -target=oci_core_volume_attachment.nextcloud_data
+
+# Conferma: yes
+```
+
+**Risultato:**
+
+- ❌ VM distrutta
+- ❌ Boot volume eliminato
+- ✅ **Data volume PRESERVATO** (prevent_destroy)
+  - Database PostgreSQL intatto
+  - File utenti intatti
+  - Configurazioni Nextcloud intatte
+  - Backup Borg preservati
+
+**Tempo:** ~2-3 minuti
+
+#### 2. Apply - Ricrea Infrastruttura
+
+```bash
+# Ricrea VM + riattacca volume dati
+terraform apply -var-file=prod.tfvars
+
+# Conferma: yes
+```
+
+**Cloud-init Automation (eseguito automaticamente):**
+
+```bash
+# 1. System setup
+- Update packages
+- Install Docker, UFW, Fail2ban
+- Configure firewall rules
+
+# 2. Storage setup
+- Mount data volume (/mnt/nextcloud-data)
+- Verify data integrity
+
+# 3. Repository automation (NUOVO!)
+- git clone https://github.com/user/nextcloud-oci-terraform.git
+- Copia docker-compose.yml (con monitoring!)
+- Copia Caddyfile + monitoring configs
+- Genera Caddyfile con dominio corretto
+- Crea /home/ubuntu/SETUP-NEXTCLOUD.txt
+
+# 4. Container deployment
+- docker compose up -d
+  → nextcloud-aio-mastercontainer
+  → caddy-reverse-proxy
+  → prometheus ✨
+  → grafana ✨
+  → node-exporter ✨
+  → cadvisor ✨
+
+# 5. Completion
+- File reminder con istruzioni post-deploy
+```
+
+**Tempo:** ~5-7 minuti
+
+#### 2.5. Monitoraggio Cloud-init (Durante Apply)
+
+Mentre cloud-init esegue, monitora i progressi in tempo reale:
+
+```bash
+# Ottieni IP dalla output Terraform
+NEW_IP=$(terraform output -raw public_ip)
+
+# SSH al server (potrebbe richiedere 1-2 min dopo apply)
+ssh ubuntu@$NEW_IP
+
+# Monitora cloud-init in tempo reale
+tail -f /var/log/cloud-init-output.log
+
+# Dovresti vedere progressivamente:
+# → Installing Docker
+# → Cloning Nextcloud configuration repository
+# → Deploying Nextcloud AIO + Caddy
+# → Cloud-init setup complete
+
+# Quando vedi "Cloud-init setup complete", premi CTRL+C
+```
+
+**Comandi Diagnostici Cloud-init:**
+
+```bash
+# Status cloud-init
+cloud-init status
+
+# Output dovrebbe essere:
+# status: done
+
+# Se mostra "running": aspetta che finisca
+# Se mostra "error": vedi debug sotto
+
+# Verifica timing
+cloud-init analyze show
+
+# Output mostra tempo per ogni stage:
+# Finished stage: (modules-config) 245.32 seconds
+# Finished stage: (modules-final) 12.45 seconds
+
+# Log completo (se problemi)
+sudo cat /var/log/cloud-init-output.log | less
+
+# Cerca errori specifici
+sudo cat /var/log/cloud-init-output.log | grep -i "error\|fail\|fatal"
+
+# Cerca le nostre azioni (dovrebbe mostrare "===...")
+sudo cat /var/log/cloud-init-output.log | grep "==="
+
+# Output atteso:
+# === Starting cloud-init setup ===
+# === Updating DuckDNS ===
+# === Configuring UFW firewall ===
+# === Installing Docker ===
+# === Cloning Nextcloud configuration repository ===
+# === Deploying Nextcloud AIO + Caddy ===
+# === Cloud-init setup complete ===
+```
+
+**Verifica Deploy Automatico:**
+
+```bash
+# 1. Docker installato?
+docker --version
+# Output: Docker version 28.x.x
+
+# 2. Repository clonata?
+ls -la /home/ubuntu/nextcloud/
+# Dovresti vedere:
+# - docker-compose.yml
+# - Caddyfile
+# - monitoring/
+# - .env
+
+# 3. Monitoring files presenti?
+ls -la /home/ubuntu/nextcloud/monitoring/
+# Dovresti vedere:
+# - prometheus.yml
+# - grafana/provisioning/...
+# - README.md
+
+# 4. Caddyfile generato con dominio corretto?
+grep "your-domain.duckdns.org" /home/ubuntu/nextcloud/Caddyfile
+# Deve mostrare il TUO dominio (non YOUR_DOMAIN)
+
+# 5. File reminder creato?
+cat /home/ubuntu/SETUP-NEXTCLOUD.txt
+# Mostra istruzioni post-deployment
+
+# 6. Container avviati?
+docker ps
+
+# Dovresti vedere (potrebbe richiedere 1-2 min per pull immagini):
+# - nextcloud-aio-mastercontainer
+# - caddy-reverse-proxy
+# - prometheus
+# - grafana
+# - node-exporter
+# - cadvisor
+
+# Se alcuni container mancano, vedi troubleshooting sotto
+```
+
+**Se Container Non Sono Running:**
+
+```bash
+# Controlla se docker-compose ha avuto problemi
+docker compose -f /home/ubuntu/nextcloud/docker-compose.yml ps -a
+
+# Vedi log dei container
+docker compose -f /home/ubuntu/nextcloud/docker-compose.yml logs
+
+# Riavvia manualmente se necessario
+cd /home/ubuntu/nextcloud
+docker compose up -d
+
+# Verifica di nuovo
+docker ps
+```
+
+#### 3. Post-Deployment Configuration
+
+```bash
+# 1. SSH al server
+NEW_IP=$(terraform output -raw public_ip)
+ssh ubuntu@$NEW_IP
+
+# 2. Verifica deploy completo
+docker ps
+# Dovrebbe mostrare tutti i container (Nextcloud + monitoring)
+
+# 3. Configura password Grafana
+cd /home/ubuntu/nextcloud
+GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)
+echo "GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD" >> .env
+echo "Password Grafana: $GRAFANA_ADMIN_PASSWORD"  # Salvala!
+
+# 4. Restart Grafana
+docker compose restart grafana
+
+# 5. Verifica configurazione
+docker inspect grafana | grep GF_SECURITY_ADMIN_PASSWORD
+# Deve mostrare: "GF_SECURITY_ADMIN_PASSWORD=<tua-password>"
+
+# se non mostra la password
+# Ricrea container
+docker compose down grafana
+docker compose up -d grafana
+
+# 6. Verifica Prometheus raccoglie metriche
+curl -s http://localhost:9090/-/healthy
+# Output: Prometheus Server is Healthy.
+
+# 7. Verifica targets Prometheus
+curl -s http://localhost:9090/api/v1/targets | jq -r '.data.activeTargets[] | "\(.labels.job): \(.health)"'
+# Output dovrebbe mostrare:
+# prometheus: up
+# node-exporter: up
+# cadvisor: up
+# caddy: down (normale, porta metrics non abilitata)
+
+# 8. Verifica Grafana health
+curl -s http://localhost:3000/api/health | jq
+# Output: {"database":"ok","version":"..."}
+```
+
+**Tempo:** ~2 minuti
+
+**Verifica Network e DNS:**
+
+```bash
+# 1. Verifica risoluzione DNS
+dig your-domain.duckdns.org +short
+# Deve mostrare IP pubblico del server
+
+dig monitoring.YOUR_DOMAIN.duckdns.org +short
+# Deve mostrare stesso IP (wildcard)
+
+# 2. Verifica porte aperte (UFW)
+sudo ufw status
+# Deve mostrare:
+# 22/tcp    ALLOW    (SSH)
+# 80/tcp    ALLOW    (HTTP)
+# 443/tcp   ALLOW    (HTTPS)
+# 8080/tcp  ALLOW    (Nextcloud AIO)
+
+# 3. Verifica container networks
+docker network ls
+# Deve mostrare:
+# nextcloud-aio
+# monitoring
+
+# 4. Verifica Caddy può raggiungere Grafana
+docker exec caddy-reverse-proxy wget -qO- http://grafana:3000/api/health
+# Output: {"database":"ok",...}
+
+# 5. Test connessione HTTPS (da locale)
+# Sul tuo PC:
+curl -I https://monitoring.YOUR_DOMAIN.duckdns.org
+# Deve mostrare: HTTP/2 200 (o HTTP/2 302 redirect to login)
+
+# 6. Verifica SSL certificate
+openssl s_client -connect your-domain.duckdns.org:443 -servername your-domain.duckdns.org < /dev/null 2>/dev/null | grep "subject="
+# Se staging: subject=CN=Fake LE Intermediate X1
+# Se production: subject=CN=R3 (Let's Encrypt)
+```
+
+**Verifica Volume Dati Preservato:**
+
+```bash
+# 1. Verifica mount point
+df -h /mnt/nextcloud-data
+# Deve mostrare 150GB volume
+
+# 2. Verifica dati Nextcloud esistenti
+ls -lh /mnt/nextcloud-data/nextcloud-data/
+# Dovresti vedere directory esistenti se avevi dati
+
+# 3. Verifica backup preservati
+ls -lh /mnt/nextcloud-data/borg-backups/
+# Dovresti vedere backup precedenti
+
+# 4. Verifica ownership
+ls -ld /mnt/nextcloud-data
+# Deve mostrare: drwxr-xr-x ubuntu ubuntu
+
+# 5. Verifica spazio disponibile
+du -sh /mnt/nextcloud-data/*
+# Mostra utilizzo per directory
+```
+
+#### 4. Accesso Servizi
+
+```bash
+# Nextcloud AIO (setup wizard se prima volta)
+https://<ip>:8080
+# Accetta certificato self-signed
+
+# Nextcloud (dopo setup AIO)
+https://your-domain.duckdns.org
+
+# Grafana Monitoring
+https://monitoring.YOUR_DOMAIN.duckdns.org
+# Username: admin
+# Password: da step 3
+```
+
+#### 5. Import Dashboard Grafana
+
+```bash
+# In Grafana UI:
+# 1. ☰ → Dashboards → Import
+# 2. Dashboard ID: 179 → Load → Import
+#    (Docker Container Metrics)
+# 3. Dashboard ID: 11074 → Load → Import
+#    (Node Exporter System Metrics)
+```
+
+### Risultati Test
+
+✅ **Successo Completo:**
+
+- Istanza ricreata in ~10 minuti totali
+- Dati Nextcloud 100% preservati (zero data loss)
+- Monitoring stack deployato automaticamente
+- Cloud-init automation funzionante
+- Repository GitHub come single source of truth
+
+### Troubleshooting Comuni
+
+#### Problema 1: Certificati SSL Rate Limit
+
+**Sintomo:**
+
+```
+HTTP 429 rateLimited - too many certificates (5) already issued
+retry after 2025-11-11 20:04:07 UTC
+```
+
+**Causa:** Let's Encrypt limita a 5 certificati/settimana per dominio
+
+**Soluzione Temporanea (Staging):**
+
+```bash
+# Modifica Caddyfile
+nano /home/ubuntu/nextcloud/Caddyfile
+
+# Aggiungi in CIMA:
+{
+    acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+}
+
+# Restart Caddy
+docker compose restart caddy
+
+docker compose restart caddy-reverse-proxy
+
+# Monitora i log (dovrebbe ottenere cert validi in ~30 sec)
+
+
+docker logs -f caddy-reverse-proxy
+
+```
+
+**Staging:**
+
+- ✅ Rate limit altissimi
+- ❌ Certificato "non fidato" (warning browser)
+- ✅ Funziona per test
+
+**Soluzione Definitiva:** Aspetta scadenza rate limit (~7 giorni)
+
+#### Problema 2: Cloud-init Non Esegue Comandi
+
+**Sintomo:**
+
+```
+docker: command not found
+ls /home/ubuntu/nextcloud/ → directory vuota
+```
+
+**Causa:** Sintassi cloud-config non valida
+
+**Debug:**
+
+```bash
+# Verifica log cloud-init
+sudo cat /var/log/cloud-init-output.log | grep "==="
+
+# Se vedi "Unhandled non-multipart userdata":
+# → Prima riga DEVE essere: #cloud-config (senza spazio!)
+# → Comandi bash NON devono usare - > (folded scalar)
+```
+
+**Fix:** Correggi cloud-init.yaml locale, commit, destroy/apply di nuovo
+
+#### Problema 3: Password Grafana Non Funziona
+
+**Sintomo:**
+
+```
+docker inspect grafana | grep GRAFANA_ADMIN_PASSWORD
+→ "GF_SECURITY_ADMIN_PASSWORD={GRAFANA_ADMIN_PASSWORD}"
+                              ^^^^^ Literal, non espanso!
+```
+
+**Causa:** Missing `$` in docker-compose.yml
+
+**Fix:**
+
+```bash
+cd /home/ubuntu/nextcloud
+sed -i 's/{GRAFANA_ADMIN_PASSWORD}/${GRAFANA_ADMIN_PASSWORD}/g' docker-compose.yml
+docker compose down grafana && docker compose up -d grafana
+```
+
+**Prevenzione:** Verifica fix in repo prima del deploy
+
+### Lessons Learned
+
+1. **Cloud-init Syntax è Critico:**
+
+   - `#cloud-config` (NO spazio dopo #)
+   - Comandi bash: usa pipe diretti, NO `- >` folded scalars
+   - Testa con `yamllint` MA verifica compatibilità cloud-init
+
+2. **Volume Caddy Non Persiste:**
+
+   - Certificati SSL persi ad ogni destroy
+   - Considera: mount caddy_data su block volume per future iterations
+   - Oppure: accetta rate limit (rare destroys in production)
+
+3. **Git Clone = Single Source of Truth:**
+
+   - Cloud-init clona repo → sempre aggiornato
+   - NO file embedded in cloud-init (maintenance nightmare)
+   - Fix locale → commit → destroy/apply = consistent
+
+4. **Test Locale Fondamentale:**
+
+   - `terraform plan` NON testa cloud-init
+   - Destroy/apply test environment PRIMA di production
+   - Usa staging SSL certs per test infiniti
+
+5. **Separazione Secrets:**
+   - Password Grafana NON in cloud-init (security)
+   - Configurazione post-deploy manuale accettabile
+   - File reminder automatico (.env con istruzioni)
+
+### Metriche Performance
+
+| Operazione              | Tempo       | Downtime Nextcloud  |
+| ----------------------- | ----------- | ------------------- |
+| Destroy istanza         | 2-3 min     | ✅ Inizia downtime  |
+| Apply + cloud-init      | 5-7 min     | ⏳ Continua         |
+| Config password Grafana | 2 min       | ❌ Nextcloud già UP |
+| **TOTALE**              | **~10 min** | **7-10 min**        |
+
+**Data integrity:** 100% preservata (zero data loss)
+
+---
+
 ## 📖 Risorse
 
 ### Documentazione Correlata
@@ -789,4 +1278,4 @@ Hai capito il pattern se puoi rispondere:
 
 ---
 
-_Last updated: 8 November 2025_
+_Last updated: 11 November 2025_

@@ -82,7 +82,7 @@ volumes:
 ### Caddyfile
 
 ```
-pandagan-oci.duckdns.org {
+YOUR-DOMAIN.duckdns.org {
     # Reverse proxy to Nextcloud AIO Apache
     reverse_proxy nextcloud-aio-apache:11000
 
@@ -137,7 +137,7 @@ docker logs -f caddy-reverse-proxy
 Dovresti vedere nei logs:
 
 ```
-certificate obtained successfully for pandagan-oci.duckdns.org
+certificate obtained successfully for YOUR-DOMAIN.duckdns.org
 ```
 
 ### 3. Configurazione AIO
@@ -296,7 +296,7 @@ Già abilitata nel Caddyfile con `encode gzip`.
 Per migliorare performance, aggiungi al Caddyfile:
 
 ```
-pandagan-oci.duckdns.org {
+YOUR-DOMAIN.duckdns.org {
     # ... configurazione esistente ...
 
     # Cache static assets
@@ -319,7 +319,7 @@ Per massima sicurezza, registra il dominio nella HSTS Preload List:
 Proteggi da brute force aggiungendo al Caddyfile:
 
 ```
-pandagan-oci.duckdns.org {
+YOUR-DOMAIN.duckdns.org {
     # Rate limit login attempts
     @login {
         path /login*
@@ -382,7 +382,7 @@ else
 fi
 
 # Check SSL certificate expiry
-DAYS=$(echo | openssl s_client -connect pandagan-oci.duckdns.org:443 2>/dev/null | openssl x509 -noout -checkend $((30*86400)))
+DAYS=$(echo | openssl s_client -connect YOUR-DOMAIN.duckdns.org:443 2>/dev/null | openssl x509 -noout -checkend $((30*86400)))
 if [ $? -eq 0 ]; then
     echo "✅ SSL certificate valid (>30 days)"
 else

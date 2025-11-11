@@ -45,20 +45,91 @@ This project demonstrates how to deploy a **fully-featured, secure, and scalable
 - ✅ Automated daily backups with off-site copies
 - ⚙️ Optimized for single-user performance (Talk & Whiteboard removed)
 
+### Automation & DevOps
+
+- ✅ **Terraform IaC** - One-command infrastructure deployment
+- ✅ **GitHub Actions CI/CD** - Automated testing and validation
+- ✅ **Cloud-init** - Automatic system bootstrap
+- ✅ **Monitoring Stack** - Prometheus + Grafana + exporters
+- ✅ **Backup Automation** - Script for local backup sync with integrity checks
+- ✅ **Pre-commit Hooks** - Local validation before commits
+
+## 📁 Project Structure
+
+```
+nextcloud-oci-terraform/
+├── 📄 README.md                    # This file - project overview
+├── 📄 ROADMAP.md                   # Project roadmap and progress
+├── 📄 SSL-PRODUCTION-SWITCH.md     # Guide for SSL staging → production
+│
+├── 📂 docs/                        # Complete documentation
+│   ├── 01-INITIAL-SETUP.md         # SSH and first connection
+│   ├── 02-SYSTEM-SETUP.md          # System updates and packages
+│   ├── 03-DOCKER-SETUP.md          # Docker installation
+│   ├── 04-FIREWALL-SECURITY.md     # UFW and Fail2ban config
+│   ├── 05-CADDY-REVERSE-PROXY.md   # Caddy setup
+│   ├── 05-NEXTCLOUD-DEPLOYMENT.md  # Nextcloud AIO deployment
+│   ├── 06-BACKUP-RESTORE.md        # Backup strategy
+│   ├── 07-CRON-AUTOMATION.md       # Cron setup for backups
+│   ├── 08-TERRAFORM-STRATEGY.md    # IaC patterns and workflows
+│   ├── 09-CICD-MONITORING.md       # CI/CD pipeline architecture
+│   └── 10-LOCAL-BACKUP-MANAGEMENT.md  # ⭐ Local backup automation
+│
+├── 📂 terraform/                   # Infrastructure as Code
+│   ├── provider.tf                 # OCI provider configuration
+│   ├── variables.tf                # Configurable variables
+│   ├── network.tf                  # VCN, subnet, security lists
+│   ├── compute.tf                  # Compute instance
+│   ├── storage.tf                  # Persistent data volume
+│   ├── outputs.tf                  # Deployment outputs
+│   ├── cloud-init.yaml             # Automated system bootstrap
+│   ├── terraform.tfvars.example    # Configuration template
+│   └── README.md                   # Terraform guide
+│
+├── 📂 docker/                      # Docker Compose stack
+│   ├── docker-compose.yml          # Nextcloud + Monitoring services
+│   ├── Caddyfile                   # Caddy reverse proxy config
+│   └── monitoring/
+│       └── prometheus.yml          # Prometheus configuration
+│
+├── 📂 scripts/                     # Automation scripts
+│   ├── local-backup-sync.sh        # ⭐ Automated backup sync
+│   ├── deploy-nextcloud.sh         # Nextcloud deployment
+│   ├── ssh-connect.sh              # Quick SSH connection
+│   ├── download-backup.sh          # Legacy backup download
+│   ├── export-data.sh              # Human-readable data export
+│   ├── weekly-backup.sh            # Backup wrapper
+│   ├── setup-cron.sh               # Cron automation setup
+│   └── README.md                   # Scripts documentation
+│
+├── 📂 .github/workflows/           # CI/CD pipelines
+│   ├── ci.yml                      # Main CI pipeline (PR + push)
+│   ├── security-deep.yml           # Weekly security scans
+│   └── docker-scan.yml             # Docker vulnerability scans
+│
+├── 📄 .pre-commit-config.yaml      # Pre-commit hooks config
+├── 📄 .gitignore                   # Git ignore rules
+└── 📄 .env.example                 # Environment variables template
+```
+
 ## 📚 Tech Stack
 
-| Component          | Technology              | Purpose                     |
-| ------------------ | ----------------------- | --------------------------- |
-| **Cloud Provider** | Oracle Cloud (OCI)      | Always Free tier hosting    |
-| **Compute**        | A1.Flex (ARM64)         | 4 vCPU, 24GB RAM            |
-| **Containers**     | Docker + Docker Compose | Service orchestration       |
-| **Application**    | Nextcloud AIO           | All-in-One cloud suite      |
-| **Reverse Proxy**  | Caddy                   | Automatic HTTPS, HTTP/3     |
-| **Database**       | PostgreSQL              | Nextcloud database          |
-| **Cache**          | Redis                   | Performance optimization    |
-| **DNS**            | DuckDNS                 | Dynamic DNS (free)          |
-| **Firewall**       | UFW + Fail2ban          | System security             |
-| **SSL/TLS**        | Let's Encrypt           | Free automated certificates |
+| Component          | Technology              | Purpose                              |
+| ------------------ | ----------------------- | ------------------------------------ |
+| **Cloud Provider** | Oracle Cloud (OCI)      | Always Free tier hosting             |
+| **Compute**        | A1.Flex (ARM64)         | 4 vCPU, 24GB RAM                     |
+| **Storage**        | OCI Block Volume        | 100GB persistent data (prevent_destroy) |
+| **Containers**     | Docker + Docker Compose | Service orchestration                |
+| **Application**    | Nextcloud AIO           | All-in-One cloud suite               |
+| **Reverse Proxy**  | Caddy                   | Automatic HTTPS, HTTP/3              |
+| **Database**       | PostgreSQL              | Nextcloud database                   |
+| **Cache**          | Redis                   | Performance optimization             |
+| **Backup**         | BorgBackup              | Encrypted daily backups              |
+| **DNS**            | DuckDNS                 | Dynamic DNS (free)                   |
+| **Firewall**       | UFW + Fail2ban          | System security                      |
+| **SSL/TLS**        | Let's Encrypt           | Free automated certificates          |
+| **Monitoring**     | Prometheus + Grafana    | Metrics and dashboards               |
+| **Exporters**      | Node Exporter, cAdvisor | System and container metrics         |
 
 ## 🏗️ Architecture
 
@@ -73,23 +144,25 @@ Internet
 ┌─────────────────────────────────────┐
 │  Ubuntu 24.04 LTS (ARM64)           │
 │  UFW Firewall + Fail2ban            │
+│  A1.Flex: 4 vCPU, 24GB RAM          │
 └─────────────────────────────────────┘
-   ↓
-┌─────────────────────────────────────┐
-│  Caddy Reverse Proxy                │
-│  - HTTPS (443) + Let's Encrypt      │
-│  - HTTP (80) → HTTPS redirect       │
-└─────────────────────────────────────┘
-   ↓ (internal port 11000)
-┌─────────────────────────────────────┐
-│  Nextcloud AIO Master Container     │
-│  - Orchestrates all services        │
-└─────────────────────────────────────┘
-   ↓
-┌─────────────────────────────────────┐
-│  Nextcloud Services (Docker)        │
-│  - Nextcloud (PHP-FPM)              │
-│  - PostgreSQL Database              │
+   ↓                                   ║
+┌─────────────────────────────────────┐║
+│  Caddy Reverse Proxy                │║
+│  - HTTPS (443) + Let's Encrypt      │║
+│  - HTTP (80) → HTTPS redirect       │║   ┌──────────────────────────────┐
+│  - monitoring.* → Grafana           │║   │ 💾 Persistent Block Volume   │
+└─────────────────────────────────────┘║   │  (100GB, prevent_destroy)    │
+   ↓ (internal port 11000)             ║   │                              │
+┌─────────────────────────────────────┐║   │ /mnt/nextcloud-data/         │
+│  Nextcloud AIO Master Container     │║   │  ├─ data/ (user files)       │
+│  - Orchestrates all services        │║   │  ├─ database/ (PostgreSQL)   │
+└─────────────────────────────────────┘║   │  ├─ config/ (Nextcloud cfg)  │
+   ↓                                   ║   │  └─ borg-backups/ (7 days)   │
+┌─────────────────────────────────────┐║   │                              │
+│  Nextcloud Services (Docker)        │║   │ ⚠️  Survives instance destroy │
+│  - Nextcloud (PHP-FPM)              ║╝══>│    "Pets vs Cattle" strategy │
+│  - PostgreSQL Database              │    └──────────────────────────────┘
 │  - Redis Cache                      │
 │  - Apache Web Server                │
 │  - Collabora Office                 │
@@ -97,7 +170,21 @@ Internet
 │  - Notify Push                      │
 │  - BorgBackup (daily 04:00 UTC)     │
 └─────────────────────────────────────┘
+
+┌─────────────────────────────────────┐
+│  Monitoring Stack (Docker)          │
+│  - Prometheus (metrics storage)     │
+│  - Grafana (dashboards)             │
+│  - Node Exporter (system metrics)   │
+│  - cAdvisor (container metrics)     │
+└─────────────────────────────────────┘
 ```
+
+**Architettura "Pets vs Cattle":**
+
+- 🐄 **Cattle (Compute)**: L'istanza è ricreabile, può essere distrutta e ricreata senza perdita dati
+- 🐕 **Pet (Storage)**: Il volume persistente è protetto (`prevent_destroy = true`) e contiene TUTTI i dati critici
+- 🔄 **Disaster Recovery**: `terraform destroy` + `terraform apply` ricrea l'infrastruttura mantenendo i dati
 
 ## 🚀 Quick Start
 
@@ -206,15 +293,25 @@ nano .env  # Add your instance IP, SSH key, DuckDNS credentials
 
 Comprehensive step-by-step guides:
 
-| Document                                                        | Description                            |
-| --------------------------------------------------------------- | -------------------------------------- |
-| [`01-INITIAL-SETUP.md`](docs/01-INITIAL-SETUP.md)               | SSH configuration and first connection |
-| [`02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)                 | System updates and base packages       |
-| [`03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)                 | Docker and Docker Compose installation |
-| [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)       | UFW and Fail2ban configuration         |
-| [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)   | Caddy setup for automatic SSL          |
-| [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md) | Nextcloud AIO deployment guide         |
-| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md)             | Backup strategy and disaster recovery  |
+| Document                                                              | Description                            |
+| --------------------------------------------------------------------- | -------------------------------------- |
+| **Setup & Deployment**                                                |                                        |
+| [`01-INITIAL-SETUP.md`](docs/01-INITIAL-SETUP.md)                     | SSH configuration and first connection |
+| [`02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)                       | System updates and base packages       |
+| [`03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)                       | Docker and Docker Compose installation |
+| [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)             | UFW and Fail2ban configuration         |
+| [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)         | Caddy setup for automatic SSL          |
+| [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)       | Nextcloud AIO deployment guide         |
+| **Backup & Recovery**                                                 |                                        |
+| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md)                   | Backup strategy and disaster recovery  |
+| [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | ⭐ Local backup automation with script |
+| **Infrastructure as Code**                                            |                                        |
+| [`terraform/README.md`](terraform/README.md)                          | Terraform deployment guide             |
+| [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md)           | IaC strategy and operational workflows |
+| **CI/CD & Monitoring**                                                |                                        |
+| [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md)                 | GitHub Actions pipeline and monitoring |
+| **Operations**                                                        |                                        |
+| [`scripts/README.md`](scripts/README.md)                              | All available scripts reference        |
 
 ## 🔐 Security Features
 
@@ -232,10 +329,14 @@ Dual backup system for maximum data protection:
 ### Borg Backup (System-level)
 
 - **Automated**: Daily backups at 04:00 UTC via Nextcloud AIO
-- **Location**: `/mnt/backup/borg/` on OCI instance
-- **Retention**: 7 days
+- **Location**: `/mnt/nextcloud-data/borg-backups/` on OCI instance
+  - ⚠️ **IMPORTANTE**: I backup sono sul **volume persistente** (`/mnt/nextcloud-data/`)
+  - Questo significa che sopravvivono al destroy/recreate dell'istanza compute
+  - Il volume ha `prevent_destroy = true` per protezione totale
+  - Strategia "Pets vs Cattle": compute è ricreabile, dati sono protetti
+- **Retention**: 7 days (configurable)
 - **Encryption**: Yes (password-protected)
-- **Off-site**: Weekly download to local PC with `download-backup.sh`
+- **Off-site**: Automated sync to local PC with `local-backup-sync.sh` script
 - **Components**:
   - Database (PostgreSQL)
   - User files and data
@@ -253,35 +354,45 @@ Dual backup system for maximum data protection:
 - **Portability**: Import to Google/Apple/Outlook
 - **Script**: `export-data.sh`
 
-### Automation
+### Local Backup Automation ⭐
 
-⚠️ **IMPORTANT**: Cron must be configured once after deployment!
+Automated script for syncing backups to your local PC:
 
 ```bash
-# Setup automated weekly backups (one-time setup required!)
-./scripts/setup-cron.sh
+# One-time setup (5 minutes)
+ln -s ~/Projects/nextcloud-oci-terraform/scripts/local-backup-sync.sh ~/bin/nextcloud-backup
+echo 'export BORG_PASSPHRASE="your-password"' >> ~/.bash_profile
 
-# Verify cron is active
-crontab -l
+# Interactive sync + extraction
+nextcloud-backup
 
-# Manual backup anytime
-./scripts/weekly-backup.sh
+# Automated sync only (perfect for cron)
+nextcloud-backup --sync-only
 
-# Check backup logs
-tail -f /tmp/nextcloud-backup.log
+# Setup weekly automation
+crontab -e
+# Add: 0 22 * * 0 $HOME/bin/nextcloud-backup --sync-only >> $HOME/nextcloud-backup-cron.log 2>&1
 ```
 
-See: [`docs/06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md) for complete guide
+**Features:**
+
+- ✅ rsync incremental sync (only differences)
+- ✅ Automatic integrity verification (`borg check`)
+- ✅ Interactive extraction with permission fixing
+- ✅ Complete logging and statistics
+- ✅ Mount backups as filesystem for exploration
+
+See: [`docs/10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) for complete guide
 
 ## 📊 Resource Usage
 
 Typical resource consumption (optimized single-user setup):
 
-| Metric      | Usage            | Available   | Note                     |
-| ----------- | ---------------- | ----------- | ------------------------ |
-| **RAM**     | ~1GB active      | 24GB        | Optimized (no Talk/WB)   |
-| **CPU**     | 5-10% avg        | 4 cores     | Low idle consumption     |
-| **Storage** | ~5-10GB (base)   | 100GB       | + user data + backups    |
+| Metric      | Usage            | Available   | Note                   |
+| ----------- | ---------------- | ----------- | ---------------------- |
+| **RAM**     | ~1GB active      | 24GB        | Optimized (no Talk/WB) |
+| **CPU**     | 5-10% avg        | 4 cores     | Low idle consumption   |
+| **Storage** | ~5-10GB (base)   | 100GB       | + user data + backups  |
 | **Network** | Depends on usage | Unlimited\* |
 
 \*OCI Free Tier includes 10TB outbound/month
@@ -306,6 +417,21 @@ docker compose up -d
 
 ### Monitoring
 
+**Grafana Dashboard:**
+
+- Access: `https://monitoring.YOUR_DOMAIN.duckdns.org`
+- Username: `admin`
+- Password: Configure in `.env` file (`GRAFANA_ADMIN_PASSWORD`)
+
+**Available Metrics:**
+
+- System resources (CPU, RAM, disk, network) via Node Exporter
+- Docker container metrics via cAdvisor
+- Caddy reverse proxy metrics
+- Prometheus 30-day retention
+
+**Manual Monitoring Commands:**
+
 ```bash
 # Check container status
 docker ps
@@ -313,12 +439,20 @@ docker ps
 # View logs
 docker logs nextcloud-aio-nextcloud
 docker logs caddy-reverse-proxy
+docker logs grafana
+docker logs prometheus
 
-# Resource usage
+# Resource usage real-time
 docker stats
 
 # SSL certificate expiry
 echo | openssl s_client -connect YOUR_DOMAIN:443 2>/dev/null | openssl x509 -noout -dates
+
+# Prometheus health check
+curl -s http://localhost:9090/-/healthy
+
+# Check Grafana status
+curl -s http://localhost:3000/api/health
 ```
 
 ## 🧪 Troubleshooting
@@ -330,17 +464,20 @@ Common issues and solutions documented in:
 
 ## 🔮 Roadmap
 
-### ✅ Completed (Phase 1 & 2)
+### ✅ Completed (Phase 1-3)
 
 - [x] **Terraform automation for OCI provisioning** - Full IaC implementation
 - [x] **Automated backup system** - Borg + human-readable exports
 - [x] **Pets vs Cattle pattern** - Persistent data volume, recreatable compute
 - [x] **Production hardening** - Firewall, Fail2ban, SSL, security headers
+- [x] **CI/CD with GitHub Actions** - Automated testing and deployment
+- [x] **Monitoring with Prometheus + Grafana** - Metrics collection and dashboards
+- [x] **Disaster Recovery tested** - 3 complete destroy/apply cycles validated
 
-### 🚧 In Progress (Phase 3)
+### 🚧 In Progress (Phase 4)
 
-- [ ] **CI/CD with GitHub Actions** - Automated testing and deployment
-- [ ] **Monitoring with Prometheus + Grafana** - Metrics and alerting
+- [ ] **Grafana dashboard configuration** - Import pre-built dashboards
+- [ ] **Alerting setup** - Alertmanager for critical notifications
 
 ### 📋 Planned (Phase 4+)
 

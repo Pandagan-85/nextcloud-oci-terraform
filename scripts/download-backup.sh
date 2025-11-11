@@ -39,7 +39,7 @@ SSH_KEY_PATH="${OCI_SSH_KEY_PATH/#\~/$HOME}"
 
 # Default backup directory on local machine
 LOCAL_BACKUP_DIR="${HOME}/nextcloud-backups"
-REMOTE_BACKUP_DIR="/mnt/backup/borg"
+REMOTE_BACKUP_DIR="/mnt/nextcloud-data/borg-backups"
 
 # Create local backup directory
 mkdir -p "$LOCAL_BACKUP_DIR"
