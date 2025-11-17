@@ -114,20 +114,20 @@ nextcloud-oci-terraform/
 
 ## 📚 Tech Stack
 
-| Component          | Technology              | Purpose                              |
-| ------------------ | ----------------------- | ------------------------------------ |
-| **Cloud Provider** | Oracle Cloud (OCI)      | Always Free tier hosting             |
-| **Compute**        | A1.Flex (ARM64)         | 4 vCPU, 24GB RAM                     |
+| Component          | Technology              | Purpose                                 |
+| ------------------ | ----------------------- | --------------------------------------- |
+| **Cloud Provider** | Oracle Cloud (OCI)      | Always Free tier hosting                |
+| **Compute**        | A1.Flex (ARM64)         | 4 vCPU, 24GB RAM                        |
 | **Storage**        | OCI Block Volume        | 100GB persistent data (prevent_destroy) |
-| **Containers**     | Docker + Docker Compose | Service orchestration                |
-| **Application**    | Nextcloud AIO           | All-in-One cloud suite               |
-| **Reverse Proxy**  | Caddy                   | Automatic HTTPS, HTTP/3              |
-| **Database**       | PostgreSQL              | Nextcloud database                   |
-| **Cache**          | Redis                   | Performance optimization             |
-| **Backup**         | BorgBackup              | Encrypted daily backups              |
-| **DNS**            | DuckDNS                 | Dynamic DNS (free)                   |
-| **Firewall**       | UFW + Fail2ban          | System security                      |
-| **SSL/TLS**        | Let's Encrypt           | Free automated certificates          |
+| **Containers**     | Docker + Docker Compose | Service orchestration                   |
+| **Application**    | Nextcloud AIO           | All-in-One cloud suite                  |
+| **Reverse Proxy**  | Caddy                   | Automatic HTTPS, HTTP/3                 |
+| **Database**       | PostgreSQL              | Nextcloud database                      |
+| **Cache**          | Redis                   | Performance optimization                |
+| **Backup**         | BorgBackup              | Encrypted daily backups                 |
+| **DNS**            | DuckDNS                 | Dynamic DNS (free)                      |
+| **Firewall**       | UFW + Fail2ban          | System security                         |
+| **SSL/TLS**        | Let's Encrypt           | Free automated certificates             |
 | **Monitoring**     | Prometheus + Grafana    | Metrics and dashboards               |
 | **Exporters**      | Node Exporter, cAdvisor | System and container metrics         |
 
@@ -297,21 +297,21 @@ Comprehensive step-by-step guides:
 | --------------------------------------------------------------------- | -------------------------------------- |
 | **Setup & Deployment**                                                |                                        |
 | [`01-INITIAL-SETUP.md`](docs/01-INITIAL-SETUP.md)                     | SSH configuration and first connection |
-| [`02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)                       | System updates and base packages       |
-| [`03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)                       | Docker and Docker Compose installation |
-| [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)             | UFW and Fail2ban configuration         |
-| [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)         | Caddy setup for automatic SSL          |
-| [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)       | Nextcloud AIO deployment guide         |
-| **Backup & Recovery**                                                 |                                        |
-| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md)                   | Backup strategy and disaster recovery  |
-| [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | ⭐ Local backup automation with script |
-| **Infrastructure as Code**                                            |                                        |
-| [`terraform/README.md`](terraform/README.md)                          | Terraform deployment guide             |
-| [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md)           | IaC strategy and operational workflows |
-| **CI/CD & Monitoring**                                                |                                        |
-| [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md)                 | GitHub Actions pipeline and monitoring |
-| **Operations**                                                        |                                        |
-| [`scripts/README.md`](scripts/README.md)                              | All available scripts reference        |
+| [`02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)                       | System updates and base packages        |
+| [`03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)                       | Docker and Docker Compose installation  |
+| [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)             | UFW and Fail2ban configuration          |
+| [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)         | Caddy setup for automatic SSL           |
+| [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)       | Nextcloud AIO deployment guide          |
+| **Backup & Recovery**                                                 |                                         |
+| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md)                   | Backup strategy and disaster recovery   |
+| [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | ⭐ Local backup automation with script  |
+| **Infrastructure as Code**                                            |                                         |
+| [`terraform/README.md`](terraform/README.md)                          | Terraform deployment guide              |
+| [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md)           | IaC strategy and operational workflows  |
+| **CI/CD & Monitoring**                                                |                                         |
+| [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md)                 | GitHub Actions pipeline and monitoring  |
+| **Operations**                                                        |                                         |
+| [`scripts/README.md`](scripts/README.md)                              | All available scripts reference         |
 
 ## 🔐 Security Features
 
