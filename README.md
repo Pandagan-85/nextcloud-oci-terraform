@@ -334,7 +334,11 @@ Dual backup system for maximum data protection:
   - Questo significa che sopravvivono al destroy/recreate dell'istanza compute
   - Il volume ha `prevent_destroy = true` per protezione totale
   - Strategia "Pets vs Cattle": compute è ricreabile, dati sono protetti
-- **Retention**: 7 days (configurable)
+- **Retention**: Automated pruning every Monday at 06:00 UTC
+  - Daily: keep last 7 days
+  - Weekly: keep last 4 weeks
+  - Monthly: keep last 6 months
+  - Script: `/usr/local/bin/borg-prune.sh` (cronjob)
 - **Encryption**: Yes (password-protected)
 - **Off-site**: Automated sync to local PC with `local-backup-sync.sh` script
 - **Components**:

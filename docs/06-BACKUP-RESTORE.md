@@ -7,13 +7,11 @@ Guida completa per backup e disaster recovery di Nextcloud AIO.
 ### Strategia 3-2-1 Backup
 
 - **3 copie** dei dati:
-
   1. Dati originali su Nextcloud (OCI)
   2. Backup locale su OCI (`/mnt/nextcloud-data/borg-backups/` - volume persistente)
   3. Backup offline sul tuo PC (`~/nextcloud-backups/`)
 
 - **2 tipi** di media:
-
   - SSD OCI (cloud)
   - Disco locale PC
 
@@ -353,13 +351,67 @@ Nextcloud AIO **invia notifica** nell'interfaccia se backup fallisce.
 
 ### Retention
 
-Configurazione attuale (7 giorni) è buona per uso personale.
+**Configurazione Implementata** ✅
 
-**Se vuoi estendere**:
+Il sistema di retention automatica è configurato con:
 
-- AIO interface → Backup settings
-- Aumenta retention (es: 14 o 30 giorni)
-- ⚠️ Considera spazio disco disponibile
+- **Daily**: ultimi 7 giorni
+- **Weekly**: ultime 4 settimane
+- **Monthly**: ultimi 6 mesi
+
+**Come Funziona:**
+
+1. **Backup automatici**: Nextcloud AIO crea backup ogni giorno alle **04:00 UTC**
+2. **Pruning automatico**: Script esegue pulizia ogni **lunedì alle 06:00 UTC**
+3. **Policy applicata**: `borg prune --keep-daily=7 --keep-weekly=4 --keep-monthly=6`
+
+**Script di Pruning:**
+
+Lo script `/usr/local/bin/borg-prune.sh` viene eseguito automaticamente via cronjob:
+
+```bash
+# Cronjob configurato in root crontab
+0 6 * * 1 /usr/local/bin/borg-prune.sh
+```
+
+**Verifica Pruning:**
+
+```bash
+# Sul server - visualizza log pruning
+sudo tail -50 /var/log/borg-prune.log
+
+# Verifica cronjob attivo
+sudo crontab -l | grep borg
+
+# Test manuale script
+sudo /usr/local/bin/borg-prune.sh
+```
+
+**Modifica Retention Policy:**
+
+Se vuoi cambiare la retention (es: 14 giorni invece di 7):
+
+```bash
+# Sul server - modifica lo script
+sudo nano /usr/local/bin/borg-prune.sh
+
+# Cambia i valori:
+# --keep-daily=14    # invece di 7
+# --keep-weekly=8    # invece di 4
+# --keep-monthly=12  # invece di 6
+```
+
+**Statistiche Repository:**
+
+```bash
+# Verifica spazio occupato e efficienza
+sudo -E borg info /mnt/nextcloud-data/borg-backups/borg
+
+# Lista backup attuali
+sudo -E borg list /mnt/nextcloud-data/borg-backups/borg
+```
+
+⚠️ **Nota**: La password Borg è salvata in `/home/ubuntu/nextcloud/.env` (protetto con permessi 600).
 
 ---
 

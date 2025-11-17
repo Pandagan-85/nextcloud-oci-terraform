@@ -89,6 +89,20 @@ sync_backups() {
     log "📥 Sincronizzazione backup da server..."
     echo ""
 
+    # Fix permessi sul server (il container borgbackup esegue come root)
+    log "🔓 Fix permessi backup sul server..."
+    if ssh "${SERVER_USER}@${SERVER_IP}" 'sudo chown -R ubuntu:ubuntu /mnt/nextcloud-data/borg-backups/' 2>&1 | tee -a "$LOG_FILE"; then
+        log "✅ Permessi sistemati!"
+    else
+        log_warning "⚠️  Impossibile sistemare permessi (richiede sudo passwordless)"
+        echo ""
+        read -p "Continuo comunque? [s/N]: " continue_choice
+        if [[ ! "$continue_choice" =~ ^[sS]$ ]]; then
+            return 1
+        fi
+    fi
+    echo ""
+
     # Crea directory se non esiste
     mkdir -p "$LOCAL_BACKUP_DIR"
 

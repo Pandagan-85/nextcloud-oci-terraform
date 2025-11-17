@@ -133,6 +133,70 @@ La path corretta è `/mnt/nextcloud-data/borg-backups/` (volume persistente).
 
 ---
 
+#### `borg-prune.sh` ⭐ **Server-side**
+
+Script di pruning automatico per eliminare backup vecchi sul server OCI.
+
+**⚠️ Nota**: Questo script viene eseguito **SUL SERVER**, non in locale.
+
+```bash
+# Sul server OCI
+sudo /usr/local/bin/borg-prune.sh
+```
+
+**Cosa fa:**
+
+- 🧹 Elimina backup vecchi secondo policy di retention
+- 📦 Compatta repository per recuperare spazio
+- 📝 Log completo delle operazioni in `/var/log/borg-prune.log`
+- 🔐 Password caricata da `/home/ubuntu/nextcloud/.env`
+
+**Retention Policy:**
+
+- **Daily**: keep last 7 days
+- **Weekly**: keep last 4 weeks
+- **Monthly**: keep last 6 months
+
+**Schedulazione Automatica:**
+
+```bash
+# Cronjob configurato (root crontab)
+# Ogni lunedì alle 06:00 UTC (dopo backup delle 04:00)
+0 6 * * 1 /usr/local/bin/borg-prune.sh
+```
+
+**Quando usarlo:**
+
+- ✅ Automaticamente ogni lunedì (via cronjob)
+- ✅ Manualmente se repository cresce troppo
+- ✅ Per test dopo modifica retention policy
+
+**Verifica Funzionamento:**
+
+```bash
+# Sul server - visualizza log
+sudo tail -50 /var/log/borg-prune.log
+
+# Lista backup rimanenti
+sudo -E borg list /mnt/nextcloud-data/borg-backups/borg
+
+# Statistiche repository
+sudo -E borg info /mnt/nextcloud-data/borg-backups/borg
+```
+
+**Modifica Retention:**
+
+```bash
+# Sul server
+sudo nano /usr/local/bin/borg-prune.sh
+
+# Modifica valori --keep-daily, --keep-weekly, --keep-monthly
+```
+
+**Documentazione completa**: `docs/06-BACKUP-RESTORE.md` (sezione Retention)
+
+---
+
 #### `export-data.sh`
 
 Esporta dati Nextcloud in formati leggibili (calendari, contatti).
@@ -487,6 +551,7 @@ Per informazioni dettagliate:
 ### Backup & Export
 
 - ⭐ `local-backup-sync.sh` - Sync automatico backup Borg + estrazione (raccomandato)
+- ⭐ `borg-prune.sh` - Pruning automatico backup vecchi sul server (server-side)
 - `create-backup.sh` - Backup manuale on-demand su OCI
 - `download-backup.sh` - Download backup Borg da OCI (legacy)
 - `export-data.sh` - Export calendari/contatti in formato leggibile
