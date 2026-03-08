@@ -433,8 +433,8 @@ terraform apply
 # Metodo A: Restore da backup
 # Metodo B: OCI volume cross-region copy
 
-# 5. Update DNS (DuckDNS)
-curl "https://www.duckdns.org/update?domains=...&ip=NEW_IP"
+# 5. Update DNS
+# Update DNS A record to point to NEW_IP
 
 # 6. Test funzionamento
 
@@ -454,7 +454,7 @@ terraform apply -var="instance_name=nextcloud-green"
 # Accedi a GREEN-IP:8080, verifica tutto OK
 
 # 3. Switch DNS da BLUE a GREEN
-curl "https://www.duckdns.org/update?domains=...&ip=GREEN_IP"
+# Update DNS A record to point to GREEN_IP
 
 # 4. Monitor (5-10 min)
 
@@ -496,8 +496,8 @@ nextcloud_db
 **I dispositivi vedono:**
 
 ```
-1. Tentano connessione: your-domain.duckdns.org
-2. DNS risolve nuovo IP (DuckDNS aggiorna)
+1. Tentano connessione: your-domain.example.com
+2. DNS risolve nuovo IP (aggiornare record A)
 3. Inviano password app esistente
 4. Nextcloud verifica nel database (restored)
 5. ✅ Autenticazione OK
@@ -649,7 +649,7 @@ cp terraform.tfstate terraform.tfstate.backup-$(date +%Y%m%d)
 
 ```bash
 # terraform.tfvars (in .gitignore)
-duckdns_token = "secret-token"
+domain = "secret-token"
 ssh_key_path = "~/.ssh/id_rsa"
 
 # Mai commitare su Git!
@@ -896,7 +896,7 @@ sudo cat /var/log/cloud-init-output.log | grep "==="
 
 # Output atteso:
 # === Starting cloud-init setup ===
-# === Updating DuckDNS ===
+# === DNS configured ===
 # === Configuring UFW firewall ===
 # === Installing Docker ===
 # === Cloning Nextcloud configuration repository ===
@@ -927,7 +927,7 @@ ls -la /home/ubuntu/nextcloud/monitoring/
 # - README.md
 
 # 4. Caddyfile generato con dominio corretto?
-grep "your-domain.duckdns.org" /home/ubuntu/nextcloud/Caddyfile
+grep "your-domain.example.com" /home/ubuntu/nextcloud/Caddyfile
 # Deve mostrare il TUO dominio (non YOUR_DOMAIN)
 
 # 5. File reminder creato?
@@ -1017,10 +1017,10 @@ curl -s http://localhost:3000/api/health | jq
 
 ```bash
 # 1. Verifica risoluzione DNS
-dig your-domain.duckdns.org +short
+dig your-domain.example.com +short
 # Deve mostrare IP pubblico del server
 
-dig monitoring.YOUR_DOMAIN.duckdns.org +short
+dig monitoring.your-domain.example.com +short
 # Deve mostrare stesso IP (wildcard)
 
 # 2. Verifica porte aperte (UFW)
@@ -1043,11 +1043,11 @@ docker exec caddy-reverse-proxy wget -qO- http://grafana:3000/api/health
 
 # 5. Test connessione HTTPS (da locale)
 # Sul tuo PC:
-curl -I https://monitoring.YOUR_DOMAIN.duckdns.org
+curl -I https://monitoring.your-domain.example.com
 # Deve mostrare: HTTP/2 200 (o HTTP/2 302 redirect to login)
 
 # 6. Verifica SSL certificate
-openssl s_client -connect your-domain.duckdns.org:443 -servername your-domain.duckdns.org < /dev/null 2>/dev/null | grep "subject="
+openssl s_client -connect your-domain.example.com:443 -servername your-domain.example.com < /dev/null 2>/dev/null | grep "subject="
 # Se staging: subject=CN=Fake LE Intermediate X1
 # Se production: subject=CN=R3 (Let's Encrypt)
 ```
@@ -1084,10 +1084,10 @@ https://<ip>:8080
 # Accetta certificato self-signed
 
 # Nextcloud (dopo setup AIO)
-https://your-domain.duckdns.org
+https://your-domain.example.com
 
 # Grafana Monitoring
-https://monitoring.YOUR_DOMAIN.duckdns.org
+https://monitoring.your-domain.example.com
 # Username: admin
 # Password: da step 3
 ```

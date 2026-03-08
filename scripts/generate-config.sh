@@ -28,92 +28,27 @@ source <(grep -E '^[A-Z_]+=.*' .env)
 set +a
 
 # Validate required variables
-if [ -z "$DUCKDNS_DOMAIN" ]; then
-    echo -e "${RED}Error: DUCKDNS_DOMAIN not set in .env${NC}"
+if [ -z "$DOMAIN" ]; then
+    echo -e "${RED}Error: DOMAIN not set in .env${NC}"
     exit 1
 fi
 
+KOMGA_SUBDOMAIN="${KOMGA_SUBDOMAIN:-manga}"
+
 # Generate Caddyfile
 echo -e "${GREEN}Generating Caddyfile...${NC}"
-cat > docker/Caddyfile << EOF
-# ==============================================================================
-# Caddyfile - Nextcloud AIO + Monitoring Reverse Proxy Configuration
-# ==============================================================================
-# Auto-generated from .env configuration
-# Main domain: ${DUCKDNS_DOMAIN}.duckdns.org
-# Monitoring: monitoring.${DUCKDNS_DOMAIN}.duckdns.org
-# ==============================================================================
-
-# Nextcloud AIO Main Site
-${DUCKDNS_DOMAIN}.duckdns.org {
-    # Reverse proxy to Nextcloud AIO Apache
-    reverse_proxy nextcloud-aio-apache:11000
-
-    # Security headers
-    header {
-        # Enable HSTS
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-
-        # Prevent clickjacking
-        X-Frame-Options "SAMEORIGIN"
-
-        # Prevent MIME-type sniffing
-        X-Content-Type-Options "nosniff"
-
-        # XSS protection
-        X-XSS-Protection "1; mode=block"
-
-        # Referrer policy
-        Referrer-Policy "no-referrer"
-    }
-
-    # Enable compression
-    encode gzip
-
-    # Logs
-    log {
-        output file /data/nextcloud-access.log
-        level INFO
-    }
-}
-
-# Grafana Monitoring Dashboard
-monitoring.${DUCKDNS_DOMAIN}.duckdns.org {
-    # Reverse proxy to Grafana
-    reverse_proxy grafana:3000
-
-    # Security headers
-    header {
-        # Enable HSTS
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-
-        # Prevent clickjacking (allow for Grafana iframes)
-        X-Frame-Options "SAMEORIGIN"
-
-        # Prevent MIME-type sniffing
-        X-Content-Type-Options "nosniff"
-
-        # XSS protection
-        X-XSS-Protection "1; mode=block"
-    }
-
-    # Enable compression
-    encode gzip
-
-    # Logs
-    log {
-        output file /data/grafana-access.log
-        level INFO
-    }
-}
-EOF
+sed -e "s/{\\\$DOMAIN}/${DOMAIN}/g" \
+    -e "s/{\\\$KOMGA_SUBDOMAIN}/${KOMGA_SUBDOMAIN}/g" \
+    docker/Caddyfile > docker/Caddyfile.generated
 
 echo -e "${GREEN}✓ Caddyfile generated successfully${NC}"
-echo -e "  Location: ${BLUE}docker/Caddyfile${NC}"
-echo -e "  Main domain: ${BLUE}${DUCKDNS_DOMAIN}.duckdns.org${NC}"
-echo -e "  Monitoring: ${BLUE}monitoring.${DUCKDNS_DOMAIN}.duckdns.org${NC}"
+echo -e "  Location: ${BLUE}docker/Caddyfile.generated${NC}"
+echo -e "  Main domain: ${BLUE}${DOMAIN}${NC}"
+echo -e "  Komga: ${BLUE}${KOMGA_SUBDOMAIN}.${DOMAIN}${NC}"
 echo ""
 echo -e "${YELLOW}Important:${NC}"
-echo "  1. Add 'monitoring.${DUCKDNS_DOMAIN}' subdomain to DuckDNS"
+echo "  1. Create DNS A records pointing to your server IP:"
+echo "     - ${DOMAIN}"
+echo "     - ${KOMGA_SUBDOMAIN}.${DOMAIN}"
 echo "  2. Set GRAFANA_ADMIN_PASSWORD in .env before deployment"
 echo ""

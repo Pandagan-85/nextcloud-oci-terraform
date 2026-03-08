@@ -24,7 +24,7 @@ This project demonstrates how to deploy a **fully-featured, secure, and scalable
 
 - ✅ Oracle Cloud A1.Flex instance (4 OCPU ARM, 24GB RAM, 100GB storage)
 - ✅ Automated deployment with Docker Compose
-- ✅ DuckDNS dynamic DNS integration
+- ✅ Custom domain with automatic SSL/TLS
 - ✅ Caddy reverse proxy with automatic SSL/TLS (Let's Encrypt)
 
 ### Security
@@ -125,7 +125,8 @@ nextcloud-oci-terraform/
 | **Database**       | PostgreSQL              | Nextcloud database                      |
 | **Cache**          | Redis                   | Performance optimization                |
 | **Backup**         | BorgBackup              | Encrypted daily backups                 |
-| **DNS**            | DuckDNS                 | Dynamic DNS (free)                      |
+| **DNS**            | Custom domain           | DNS A record pointing to server         |
+| **Manga/Comics**   | Komga                   | Manga/comics reader from Nextcloud files|
 | **Firewall**       | UFW + Fail2ban          | System security                         |
 | **SSL/TLS**        | Let's Encrypt           | Free automated certificates             |
 | **Monitoring**     | Prometheus + Grafana    | Metrics and dashboards               |
@@ -198,7 +199,7 @@ Internet
 
 - Oracle Cloud account (free tier) with API credentials
 - Terraform installed locally
-- DuckDNS account (free)
+- A domain with DNS A record pointing to server IP
 
 **Setup:**
 
@@ -209,7 +210,7 @@ cd nextcloud-oci-terraform/terraform
 
 # 2. Configure Terraform variables
 cp terraform.tfvars.example terraform.tfvars
-nano terraform.tfvars  # Add OCI credentials, DuckDNS token, etc.
+nano terraform.tfvars  # Add OCI credentials, domain, etc.
 
 # 3. Deploy infrastructure
 terraform init
@@ -228,7 +229,7 @@ terraform output  # Shows public IP, URLs, SSH command
 - ✅ Firewall configured (UFW + Fail2ban)
 - ✅ Docker installed and configured
 - ✅ Nextcloud AIO + Caddy deployed
-- ✅ DuckDNS configured
+- ✅ DNS configured for your domain
 - ✅ SSL certificates obtained automatically
 
 **Access your instance:**
@@ -252,7 +253,7 @@ See: [`terraform/README.md`](terraform/README.md) for detailed guide.
 - Oracle Cloud account (free tier)
 - Existing OCI instance (Ubuntu 24.04 LTS, ARM64)
 - SSH key pair
-- DuckDNS account (free)
+- A domain with DNS A record pointing to server IP
 
 **Setup:**
 
@@ -263,7 +264,7 @@ cd nextcloud-oci-terraform
 
 # 2. Configure environment
 cp .env.example .env
-nano .env  # Add your instance IP, SSH key, DuckDNS credentials
+nano .env  # Add your instance IP, SSH key, domain
 
 # 3. Generate configuration files
 ./scripts/generate-config.sh  # Creates Caddyfile with your domain
@@ -287,7 +288,7 @@ nano .env  # Add your instance IP, SSH key, DuckDNS credentials
 **Access:**
 
 - Admin interface: `https://YOUR_IP:8080`
-- Nextcloud: `https://your-domain.duckdns.org`
+- Nextcloud: `https://your-domain.example.com`
 
 ## 📖 Documentation
 
@@ -423,7 +424,7 @@ docker compose up -d
 
 **Grafana Dashboard:**
 
-- Access: `https://monitoring.YOUR_DOMAIN.duckdns.org`
+- Access: `https://monitoring.your-domain.example.com`
 - Username: `admin`
 - Password: Configure in `.env` file (`GRAFANA_ADMIN_PASSWORD`)
 
@@ -505,7 +506,6 @@ MIT License - Feel free to use and modify for your own projects.
 
 - [Nextcloud AIO](https://github.com/nextcloud/all-in-one) - Amazing all-in-one Nextcloud distribution
 - [Caddy](https://caddyserver.com/) - Modern web server with automatic HTTPS
-- [DuckDNS](https://www.duckdns.org/) - Free dynamic DNS service
 - [Oracle Cloud](https://www.oracle.com/cloud/free/) - Generous Always Free tier
 
 ## 📧 Contact

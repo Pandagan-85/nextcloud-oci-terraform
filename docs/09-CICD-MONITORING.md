@@ -290,7 +290,7 @@ The monitoring stack uses **Prometheus + Grafana** with exporters for comprehens
 │                               │                   │
 └───────────────────────────────┼───────────────────┘
                                 ▼
-            https://monitoring.yourdomain.duckdns.org
+            https://monitoring.your-domain.example.com
 ```
 
 ### Components
@@ -305,7 +305,7 @@ The monitoring stack uses **Prometheus + Grafana** with exporters for comprehens
 2. **Grafana** - Visualization and dashboards
    - Pre-configured Prometheus datasource
    - HTTPS access via Caddy
-   - URL: `https://monitoring.{domain}.duckdns.org`
+   - URL: `https://monitoring.your-domain.example.com`
 
 **Exporters:**
 
@@ -322,9 +322,9 @@ The monitoring stack uses **Prometheus + Grafana** with exporters for comprehens
 
 ### Setup Instructions
 
-#### 1. Add Monitoring Subdomain to DuckDNS
+#### 1. Add Monitoring DNS Subdomain
 
-Go to [DuckDNS.org](https://www.duckdns.org) and add:
+Add a DNS A record for the monitoring subdomain:
 
 ```
 Subdomain: monitoring.yourdomain
@@ -366,7 +366,7 @@ docker compose logs -f prometheus grafana
 #### 4. Access Grafana
 
 ```
-URL: https://monitoring.yourdomain.duckdns.org
+URL: https://monitoring.your-domain.example.com
 Username: admin
 Password: (from GRAFANA_ADMIN_PASSWORD in .env)
 ```

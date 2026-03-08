@@ -13,7 +13,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Creazione istanza OCI A1.Flex (4 vCPU, 24GB RAM, 100GB storage)
 - [x] Configurazione Security Lists OCI (porte 22, 80, 443, 8080)
 - [x] Setup SSH con chiavi e script di connessione
-- [x] Configurazione DuckDNS per DNS dinamico
+- [x] Configurazione dominio personalizzato
 
 ### Sistema e Sicurezza Base
 
@@ -125,7 +125,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] Docker installation
   - [x] Persistent storage mount per backup
   - [x] UFW + Fail2ban setup
-  - [x] DuckDNS auto-update
+  - [x] DNS configuration
   - [x] Nextcloud AIO + Caddy auto-deploy
   - [x] **GitHub repository auto-clone** - Configuration sempre aggiornata
   - [x] Monitoring stack auto-deploy (Prometheus + Grafana + Exporters)
@@ -147,7 +147,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] **Automatizzazione installazione Docker** - FATTO via `cloud-init.yaml`
 - [x] **Automatizzazione deploy Nextcloud stack** - FATTO via `cloud-init.yaml`
 - [x] **Automatizzazione firewall + security** - FATTO (UFW + Fail2ban via cloud-init)
-- [x] **Automatizzazione DuckDNS update** - FATTO via cloud-init
+- [x] **Automatizzazione DNS update** - FATTO via cloud-init
 - [ ] Ansible playbook per system setup - _Non necessario (cloud-init è sufficiente)_
 - [ ] Idempotency testing - _Opzionale_
 
@@ -202,7 +202,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] Job configuration per tutti i servizi
 - [x] **Grafana dashboard** (`docker/docker-compose.yml`)
   - [x] Auto-provisioned Prometheus datasource
-  - [x] SSL reverse proxy via Caddy (monitoring.YOUR_DOMAIN.duckdns.org)
+  - [x] SSL reverse proxy via Caddy (monitoring.your-domain.example.com)
   - [x] Password protection configurata
 - [x] **Node Exporter** - System metrics
   - [x] CPU, RAM, disk, network
@@ -223,7 +223,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ### Dashboard & Visualization 🚧 IN CORSO
 
-- [x] Grafana accessibile su `https://monitoring.YOUR_DOMAIN.duckdns.org`
+- [x] Grafana accessibile su `https://monitoring.your-domain.example.com`
 - [x] Import dashboard ID 179 (Docker Container & Host Metrics)
 - [x] Import dashboard ID 11074 (Node Exporter Full)
 - [x] Custom dashboard per Nextcloud-specific metrics
@@ -314,7 +314,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 1. ✅ **Monitoring stack deployato** - Prometheus + Grafana + Node Exporter + cAdvisor
 2. ✅ **Cloud-init con GitHub clone** - Configuration auto-update da repo
 3. ✅ **Disaster recovery testato** - 3 cicli destroy/apply completati con successo
-4. ✅ **DNS wildcard configurato** - monitoring.YOUR_DOMAIN.duckdns.org funzionante
+4. ✅ **DNS wildcard configurato** - monitoring.your-domain.example.com funzionante
 5. ✅ **Documentazione workflow operativi** - git pull vs destroy/apply
 6. ✅ **SSL staging configuration** - Let's Encrypt rate limit bypassato
 7. ✅ **Grafana password configurata** - Login protetto
@@ -323,7 +323,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 1. **Monitoring Dashboards** ⏱️ 30 min
 
-   - [x] Accesso Grafana verificato (`https://monitoring.YOUR_DOMAIN.duckdns.org`)
+   - [x] Accesso Grafana verificato (`https://monitoring.your-domain.example.com`)
    - [x] Import Dashboard ID 179 (Docker Container & Host Metrics)
    - [x] Import Dashboard ID 11074 (Node Exporter Full)
    - [x] Verifica metriche Nextcloud, Caddy, containers
@@ -331,7 +331,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 2. **SSL Production Certificates** ⏱️ 2 min (martedì 11 Nov 21:04 CET)
    - [ ] Rimuovere staging configuration da Caddyfile (righe 1-3)
    - [ ] Restart Caddy: `docker compose restart caddy-reverse-proxy`
-   - [ ] Verifica certificati production: `openssl s_client -connect YOUR_DOMAIN.duckdns.org:443`
+   - [ ] Verifica certificati production: `openssl s_client -connect your-domain.example.com:443`
    - [ ] Test sync dispositivi mobili (dopo SSL production)
 
 ### Prossimi Step (Questa settimana)
@@ -365,7 +365,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 **Monitoring Access:**
 
-- Grafana: `https://monitoring.YOUR_DOMAIN.duckdns.org` (bypass SSL warning per ora)
+- Grafana: `https://monitoring.your-domain.example.com` (bypass SSL warning per ora)
 - Prometheus: `http://localhost:9090` (SSH tunnel: `ssh -L 9090:localhost:9090 ubuntu@IP`)
 - Node Exporter: `http://localhost:9100` (metrics endpoint)
 - cAdvisor: `http://localhost:8081` (container stats)
@@ -380,7 +380,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - **Caddy vs Nginx/Traefik**: Scelto Caddy per SSL automatico e semplicità
 - **AIO vs Manual Setup**: AIO per gestione semplificata e best practices integrate
 - **PostgreSQL vs MySQL**: PostgreSQL incluso in AIO, migliori performance
-- **DuckDNS vs altri**: Gratuito, semplice, integrazione Let's Encrypt
+- **Dominio personalizzato**: Flessibile, professionale, compatibile Let's Encrypt
 
 ### Container rimossi e perché
 

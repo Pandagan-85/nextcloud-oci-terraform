@@ -30,9 +30,9 @@ output "private_ip" {
 }
 
 # DNS Information
-output "duckdns_domain" {
-  description = "DuckDNS domain for the instance"
-  value       = "${var.duckdns_domain}.duckdns.org"
+output "domain" {
+  description = "Domain for the instance"
+  value       = var.domain
 }
 
 # Storage Information
@@ -63,8 +63,8 @@ output "nextcloud_aio_url" {
 }
 
 output "nextcloud_url" {
-  description = "Nextcloud public URL (via DuckDNS)"
-  value       = "https://${var.duckdns_domain}.duckdns.org"
+  description = "Nextcloud public URL"
+  value       = "https://${var.domain}"
 }
 
 # Summary
@@ -92,8 +92,8 @@ output "deployment_summary" {
     access = {
       ssh            = "ssh ubuntu@${oci_core_instance.nextcloud.public_ip}"
       aio_interface  = "https://${oci_core_instance.nextcloud.public_ip}:8080"
-      nextcloud      = "https://${var.duckdns_domain}.duckdns.org"
-      duckdns_update = "https://www.duckdns.org/update?domains=${var.duckdns_domain}&token=YOUR_TOKEN&ip="
+      nextcloud = "https://${var.domain}"
+      komga     = "https://manga.${var.domain}"
     }
   }
 }

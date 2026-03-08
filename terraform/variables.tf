@@ -112,14 +112,8 @@ variable "tags" {
   }
 }
 
-# DuckDNS Configuration (for cloud-init)
-variable "duckdns_domain" {
-  description = "DuckDNS domain (without .duckdns.org)"
+# Domain Configuration (for cloud-init)
+variable "domain" {
+  description = "Main domain for the instance (e.g., dev.example.com)"
   type        = string
-}
-
-variable "duckdns_token" {
-  description = "DuckDNS API token"
-  type        = string
-  sensitive   = true
 }

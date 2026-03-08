@@ -34,7 +34,7 @@ Complete monitoring solution for Nextcloud on OCI using Prometheus and Grafana.
 │                               │                   │
 └───────────────────────────────┼───────────────────┘
                                 ▼
-            https://monitoring.yourdomain.duckdns.org
+            https://monitoring.your-domain.example.com
 ```
 
 ## Components
@@ -50,7 +50,7 @@ Complete monitoring solution for Nextcloud on OCI using Prometheus and Grafana.
 
 - Visualization and dashboards
 - Pre-configured Prometheus datasource
-- **Access**: <https://monitoring.yourdomain.duckdns.org>
+- **Access**: <https://monitoring.your-domain.example.com>
 
 ### 3. **Node Exporter** (Port 9100)
 
@@ -72,12 +72,12 @@ Complete monitoring solution for Nextcloud on OCI using Prometheus and Grafana.
 
 ## Setup Instructions
 
-### 1. Configure DuckDNS Subdomain
+### 1. Configure DNS Subdomain
 
-Add the monitoring subdomain to your DuckDNS account:
+Add a DNS A record for the monitoring subdomain:
 
 ```bash
-# Go to https://www.duckdns.org
+# Add A record: monitoring.your-domain.example.com -> YOUR_SERVER_IP
 # Add subdomain: monitoring.yourdomain
 # Point it to the same IP as your main domain
 ```
@@ -110,7 +110,7 @@ docker compose logs -f prometheus grafana
 ### 4. Access Grafana
 
 ```bash
-# URL: https://monitoring.yourdomain.duckdns.org
+# URL: https://monitoring.your-domain.example.com
 # Username: admin
 # Password: (from GRAFANA_ADMIN_PASSWORD in .env)
 ```

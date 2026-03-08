@@ -1,12 +1,12 @@
 # Nextcloud AIO Deployment
 
-Deployment di Nextcloud All-in-One (AIO) su OCI con DuckDNS e Let's Encrypt SSL.
+Deployment di Nextcloud All-in-One (AIO) su OCI con dominio personalizzato e Let's Encrypt SSL.
 
 ## Prerequisites
 
 - ✅ Docker e Docker Compose installati
 - ✅ Firewall UFW configurato (porte 80, 443, 8080 aperte)
-- ✅ DuckDNS configurato e funzionante
+- ✅ Dominio configurato e funzionante
 - ✅ Dominio che punta all'IP dell'istanza
 
 ## Overview Nextcloud AIO
@@ -138,7 +138,7 @@ docker exec nextcloud-aio-mastercontainer grep password /mnt/docker-aio-config/d
 Apri il browser e vai a:
 
 ```
-https://TUO-DOMINIO.duckdns.org:8443
+https://your-domain.example.com:8443
 ```
 
 **NOTA**: Usa **HTTPS** (porta 8443), non HTTP!
@@ -159,7 +159,7 @@ Il browser mostrerà un warning sul certificato - è normale per il primo access
 
 Nell'interfaccia AIO:
 
-1. **Domain**: Inserisci `TUO-DOMINIO.duckdns.org`
+1. **Domain**: Inserisci `your-domain.example.com`
 2. **Let's Encrypt**: Seleziona **"Enable"**
 3. Clicca **"Submit domain"**
 
@@ -209,7 +209,7 @@ AIO scaricherà e configurerà tutti i container (circa 10-15 minuti):
 Quando tutti i container sono "Running", accedi a:
 
 ```
-https://TUO-DOMINIO.duckdns.org
+https://your-domain.example.com
 ```
 
 Dovrebbe mostrarti la pagina di login Nextcloud con **certificato SSL valido**! 🎉
@@ -296,7 +296,7 @@ Per usare lo storage OCI:
 
 1. Verifica Security Lists OCI (porta 80, 443)
 2. Verifica UFW sull'istanza: `sudo ufw status`
-3. Testa connettività: `curl -I http://TUO-DOMINIO.duckdns.org`
+3. Testa connettività: `curl -I http://your-domain.example.com`
 
 ### Errore: Cannot access port 8443
 
@@ -336,7 +336,7 @@ docker logs nextcloud-aio-nextcloud
 
 **Soluzione**:
 
-1. Verifica DNS: `nslookup TUO-DOMINIO.duckdns.org`
+1. Verifica DNS: `nslookup your-domain.example.com`
 2. Attendi 5 minuti e riprova
 3. Verifica email in LETSENCRYPT_EMAIL è valida
 

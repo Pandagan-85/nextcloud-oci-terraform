@@ -73,12 +73,10 @@ app_name    = "nextcloud"
 environment = "prod"
 
 # ==============================================================================
-# DUCKDNS CONFIGURATION
+# DOMAIN CONFIGURATION
 # ==============================================================================
-# Get token from: https://www.duckdns.org
 
-duckdns_domain = "your-domain"      # Without .duckdns.org
-duckdns_token  = "your-token-here"  # DuckDNS API token
+domain = "your-domain.example.com"  # Your domain (DNS A record must point to server IP)
 
 # ==============================================================================
 # TAGS

@@ -63,7 +63,7 @@ terraform/
 2. **OCI CLI configured** or API keys ready
 3. **Terraform** installed (>= 1.5.0)
 4. **SSH key pair** generated
-5. **DuckDNS account** with domain and token
+5. **A domain** with DNS A record pointing to server IP
 
 ### Step 1: Get OCI Credentials
 
@@ -98,8 +98,8 @@ tenancy_ocid     = "ocid1.tenancy.oc1..aaaaa..."
 user_ocid        = "ocid1.user.oc1..aaaaa..."
 fingerprint      = "aa:bb:cc:dd:ee:ff..."
 compartment_ocid = "ocid1.compartment.oc1..aaaaa..."
-duckdns_domain   = "your-domain"
-duckdns_token    = "your-token"
+domain   = "your-domain"
+domain    = "your-token"
 ```
 
 ### Step 3: Initialize Terraform
@@ -181,7 +181,7 @@ docker exec nextcloud-aio-mastercontainer \
 ### Access Nextcloud
 
 1. **AIO Admin:** `https://<public-ip>:8080`
-2. **Nextcloud:** `https://your-domain.duckdns.org`
+2. **Nextcloud:** `https://your-domain.example.com`
 
 ---
 

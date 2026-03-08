@@ -31,10 +31,6 @@ runcmd:
 
   - echo "=== Starting cloud-init setup ==="
 
-  # Update DuckDNS
-  - echo "=== Updating DuckDNS ==="
-  - curl "https://www.duckdns.org/update?domains=${duckdns_domain}&token=${duckdns_token}&ip="
-
   # ===========================================================================
   # FIREWALL CONFIGURATION (UFW)
   # ===========================================================================
@@ -151,8 +147,9 @@ runcmd:
   - cp repo-temp/docker/docker-compose.yml /home/ubuntu/nextcloud/
   - cp repo-temp/docker/Caddyfile.template /home/ubuntu/nextcloud/Caddyfile || cp repo-temp/docker/Caddyfile /home/ubuntu/nextcloud/
   - cp -r repo-temp/docker/monitoring /home/ubuntu/nextcloud/ 2>/dev/null || true
-  # Generate Caddyfile with correct domain (replace YOUR_DOMAIN placeholder)
-  - sed -i "s/YOUR_DOMAIN/${duckdns_domain}/g" /home/ubuntu/nextcloud/Caddyfile
+  # Generate Caddyfile with correct domain (replace placeholder)
+  - sed -i "s/{\\$DOMAIN}/${domain}/g" /home/ubuntu/nextcloud/Caddyfile
+  - sed -i "s/{\\$KOMGA_SUBDOMAIN}/manga/g" /home/ubuntu/nextcloud/Caddyfile
 
   # Fix ownership
   - chown ubuntu:ubuntu /home/ubuntu/system-info.sh
@@ -174,7 +171,7 @@ runcmd:
     #   GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)
     #   echo "GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD" >> /home/ubuntu/nextcloud/.env
     #
-    # Grafana will be accessible at: https://monitoring.${duckdns_domain}.duckdns.org
+    # Grafana will be accessible at: https://monitoring.${domain}
     # Default username: admin
     #
     # ==============================================================================
@@ -224,13 +221,6 @@ runcmd:
 
 # Write files
 write_files:
-  # DuckDNS update script
-  - path: /usr/local/bin/duckdns-update.sh
-    permissions: "0755"
-    content: |
-      #!/bin/bash
-      curl "https://www.duckdns.org/update?domains=${duckdns_domain}&token=${duckdns_token}&ip="
-
   # System info script
   - path: /home/ubuntu/system-info.sh
     permissions: "0755"
@@ -239,7 +229,7 @@ write_files:
       echo "=== Nextcloud Instance Info ==="
       echo "Hostname: $(hostname)"
       echo "Public IP: $(curl -s ifconfig.me)"
-      echo "DuckDNS: ${duckdns_domain}.duckdns.org"
+      echo "Domain: ${domain}"
       echo "Docker: $(docker --version)"
       echo "Docker Compose: $(docker compose version)"
       echo "Data Volume: $(df -h /mnt/nextcloud-data | tail -1)"
@@ -265,9 +255,10 @@ write_files:
          docker compose restart grafana
 
       3. Access Services:
-         - Nextcloud AIO Setup: https://${duckdns_domain}.duckdns.org:8080
-         - Nextcloud (after AIO setup): https://${duckdns_domain}.duckdns.org
-         - Grafana Monitoring: https://monitoring.${duckdns_domain}.duckdns.org
+         - Nextcloud AIO Setup: https://${domain}:8080
+         - Nextcloud (after AIO setup): https://${domain}
+         - Komga (manga): https://manga.${domain}
+         - Grafana Monitoring: https://monitoring.${domain}
            Username: admin
            Password: (from step 1)
 
@@ -294,11 +285,12 @@ final_message: |
   ================================================================
 
   Instance: ${app_name}
-  Domain: ${duckdns_domain}.duckdns.org
+  Domain: ${domain}
 
   ✅ Docker installed and configured
   ✅ Persistent storage mounted (/mnt/nextcloud-data)
-  ✅ Nextcloud AIO deployed (with monitoring stack!)
+  ✅ Nextcloud AIO deployed
+  ✅ Komga manga reader deployed
   ✅ Caddy reverse proxy configured
   ✅ Prometheus + Grafana monitoring ready
   ✅ Firewall (UFW) enabled
@@ -316,8 +308,9 @@ final_message: |
   4. Complete Nextcloud setup wizard
 
   Access URLs:
-  - Nextcloud (after setup): https://${duckdns_domain}.duckdns.org
-  - Grafana Monitoring: https://monitoring.${duckdns_domain}.duckdns.org
+  - Nextcloud (after setup): https://${domain}
+  - Komga (manga): https://manga.${domain}
+  - Grafana Monitoring: https://monitoring.${domain}
 
   All data persisted: /mnt/nextcloud-data
   Configuration from: GitHub repo (always up-to-date!)

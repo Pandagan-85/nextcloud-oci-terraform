@@ -81,6 +81,27 @@ services:
       - nextcloud-aio-mastercontainer
 
   # ==============================================================================
+  # KOMGA - Manga/Comics Reader
+  # ==============================================================================
+
+  komga:
+    image: gotson/komga:latest
+    container_name: komga
+    restart: always
+
+    environment:
+      - TZ=${TZ:-UTC}
+
+    volumes:
+      # Library files from Nextcloud user directory (read-only)
+      - /mnt/nextcloud-data/nextcloud-data/${NEXTCLOUD_USER}/files/${KOMGA_LIBRARY_PATH}:/data:ro
+      # Komga config and database
+      - komga_config:/config
+
+    networks:
+      - nextcloud-aio
+
+  # ==============================================================================
   # MONITORING STACK
   # ==============================================================================
 
@@ -114,7 +135,7 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://monitoring.${DUCKDNS_DOMAIN:-yourdomain}.duckdns.org
+      - GF_SERVER_ROOT_URL=https://monitoring.${DOMAIN}
       - GF_INSTALL_PLUGINS=
 
     ports:
@@ -187,5 +208,6 @@ volumes:
     name: nextcloud_aio_mastercontainer
   caddy_data:
   caddy_config:
+  komga_config:
   prometheus_data:
   grafana_data:

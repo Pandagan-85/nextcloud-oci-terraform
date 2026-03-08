@@ -175,7 +175,7 @@ cd /home/pandagan/Projects/nextcloud-oci-terraform
 
 **Files**:
 
-- WebDAV: `https://YOUR-DOMAIN.duckdns.org/remote.php/dav/files/USERNAME/`
+- WebDAV: `https://your-domain.example.com/remote.php/dav/files/USERNAME/`
 - Desktop client: <https://nextcloud.com/install/#install-clients>
 
 ---
@@ -346,7 +346,7 @@ Nextcloud AIO **invia notifica** nell'interfaccia se backup fallisce.
 
 - ✅ **Documenta configurazione** OCI (Security Lists, VCN, etc.)
 - ✅ **Tieni copie** di `docker-compose.yml` e `Caddyfile`
-- ✅ **Salva** credentials DuckDNS, email SMTP, etc.
+- ✅ **Salva** credenziali dominio, email SMTP, etc.
 - ✅ **Test restore** su istanza test (se possibile)
 
 ### Retention

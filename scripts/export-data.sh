@@ -30,13 +30,13 @@ if [ -z "$OCI_INSTANCE_IP" ] || [ "$OCI_INSTANCE_IP" = "YOUR_PUBLIC_IP_HERE" ]; 
     exit 1
 fi
 
-if [ -z "$DUCKDNS_DOMAIN" ]; then
-    echo -e "${RED}Error: DUCKDNS_DOMAIN not set in .env${NC}"
+if [ -z "$DOMAIN" ]; then
+    echo -e "${RED}Error: DOMAIN not set in .env${NC}"
     exit 1
 fi
 
 # Configuration
-NEXTCLOUD_URL="https://${DUCKDNS_DOMAIN}.duckdns.org"
+NEXTCLOUD_URL="https://${DOMAIN}"
 LOCAL_EXPORT_DIR="${HOME}/nextcloud-exports"
 DATE=$(date +%Y%m%d_%H%M%S)
 EXPORT_DIR="${LOCAL_EXPORT_DIR}/${DATE}"

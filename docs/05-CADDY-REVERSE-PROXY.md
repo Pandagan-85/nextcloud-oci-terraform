@@ -82,7 +82,7 @@ volumes:
 ### Caddyfile
 
 ```
-YOUR-DOMAIN.duckdns.org {
+your-domain.example.com {
     # Reverse proxy to Nextcloud AIO Apache
     reverse_proxy nextcloud-aio-apache:11000
 
@@ -137,14 +137,14 @@ docker logs -f caddy-reverse-proxy
 Dovresti vedere nei logs:
 
 ```
-certificate obtained successfully for YOUR-DOMAIN.duckdns.org
+certificate obtained successfully for your-domain.example.com
 ```
 
 ### 3. Configurazione AIO
 
 1. Accedi a: `https://YOUR_IP:8080`
 2. Login con password generata
-3. Configura dominio: `your-domain.duckdns.org`
+3. Configura dominio: `your-domain.example.com`
 4. Seleziona componenti opzionali
 5. Avvia container
 
@@ -165,7 +165,7 @@ tcp  0.0.0.0:443  0.0.0.0:*  LISTEN  <PID>/docker-proxy
 ### Certificato SSL valido
 
 ```bash
-curl -I https://your-domain.duckdns.org
+curl -I https://your-domain.example.com
 ```
 
 Output atteso:
@@ -178,7 +178,7 @@ server: Caddy
 ### Accesso da browser
 
 ```
-https://your-domain.duckdns.org
+https://your-domain.example.com
 ```
 
 - ✅ Certificato SSL valido (Let's Encrypt)
@@ -206,7 +206,7 @@ docker restart caddy-reverse-proxy
 
 ```bash
 # Verifica DNS
-nslookup your-domain.duckdns.org 8.8.8.8
+nslookup your-domain.example.com 8.8.8.8
 
 # Verifica Security Lists OCI hanno porte 80, 443 aperte
 # Verifica UFW
@@ -259,7 +259,7 @@ Caddy **rinnova automaticamente** i certificati Let's Encrypt prima della scaden
 # Da browser: clicca sul lucchetto → Certificato → Scade il...
 
 # Da CLI
-echo | openssl s_client -connect your-domain.duckdns.org:443 2>/dev/null | openssl x509 -noout -dates
+echo | openssl s_client -connect your-domain.example.com:443 2>/dev/null | openssl x509 -noout -dates
 ```
 
 ### Forzare rinnovo manuale
@@ -284,7 +284,7 @@ Già abilitato con `443:443/udp` nel docker-compose.yml.
 Verifica:
 
 ```bash
-curl -I --http3 https://your-domain.duckdns.org
+curl -I --http3 https://your-domain.example.com
 ```
 
 ### Compressione gzip
@@ -296,7 +296,7 @@ Già abilitata nel Caddyfile con `encode gzip`.
 Per migliorare performance, aggiungi al Caddyfile:
 
 ```
-YOUR-DOMAIN.duckdns.org {
+your-domain.example.com {
     # ... configurazione esistente ...
 
     # Cache static assets
@@ -319,7 +319,7 @@ Per massima sicurezza, registra il dominio nella HSTS Preload List:
 Proteggi da brute force aggiungendo al Caddyfile:
 
 ```
-YOUR-DOMAIN.duckdns.org {
+your-domain.example.com {
     # Rate limit login attempts
     @login {
         path /login*
@@ -382,7 +382,7 @@ else
 fi
 
 # Check SSL certificate expiry
-DAYS=$(echo | openssl s_client -connect YOUR-DOMAIN.duckdns.org:443 2>/dev/null | openssl x509 -noout -checkend $((30*86400)))
+DAYS=$(echo | openssl s_client -connect your-domain.example.com:443 2>/dev/null | openssl x509 -noout -checkend $((30*86400)))
 if [ $? -eq 0 ]; then
     echo "✅ SSL certificate valid (>30 days)"
 else

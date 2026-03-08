@@ -330,47 +330,19 @@ Genera il Caddyfile da template .env per reverse proxy.
 
 **Quando usarlo:**
 
-- Dopo aver modificato `DUCKDNS_DOMAIN` in `.env`
+- Dopo aver modificato `DOMAIN` in `.env`
 - Quando aggiungi nuovi servizi al reverse proxy
 - Per rigenerare Caddyfile dopo modifiche
 - Prima del primo deployment
 
 **⚠️ Importante:**
 
-- Richiede `DUCKDNS_DOMAIN` configurato in `.env`
-- Aggiungere sottodominio `monitoring.TUODOMINIO` a DuckDNS
+- Richiede `DOMAIN` configurato in `.env`
+- Aggiungere record DNS A per `monitoring.TUODOMINIO`
 - Configurare `GRAFANA_ADMIN_PASSWORD` prima del deployment
 
 ---
 
-#### `duckdns-update.sh`
-
-Aggiorna il record DNS di DuckDNS con l'IP del server OCI.
-
-```bash
-./scripts/duckdns-update.sh
-```
-
-**Cosa fa:**
-
-- 🌐 Aggiorna DNS DuckDNS con IP corrente del server
-- ✅ Verifica successo operazione
-- 📊 Mostra domain e IP configurati
-
-**Quando usarlo:**
-
-- Dopo deploy Terraform (IP potrebbe cambiare)
-- Se l'IP pubblico del server OCI cambia
-- Per testare configurazione DuckDNS
-- Manualmente se DNS non si aggiorna
-
-**Prerequisiti:**
-
-- `DUCKDNS_DOMAIN` configurato in `.env`
-- `DUCKDNS_TOKEN` configurato in `.env`
-- `OCI_INSTANCE_IP` configurato in `.env`
-
----
 
 #### `setup-precommit.sh`
 
@@ -561,7 +533,7 @@ Per informazioni dettagliate:
 
 - `setup-cron.sh` - Configura automazione backup settimanali
 - `generate-config.sh` - Genera Caddyfile da .env template
-- `duckdns-update.sh` - Aggiorna DNS DuckDNS
+
 - `setup-precommit.sh` - Setup git hooks per code quality
 - `deploy-nextcloud.sh` - Deployment iniziale Nextcloud AIO
 - `ssh-connect.sh` - Connessione SSH rapida al server

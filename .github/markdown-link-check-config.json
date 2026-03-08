@@ -7,7 +7,7 @@
       "pattern": "^https://YOUR"
     },
     {
-      "pattern": "^https://.*\\.duckdns\\.org"
+      "pattern": "^https://.*\\.example\\.com"
     }
   ],
   "replacementPatterns": [],

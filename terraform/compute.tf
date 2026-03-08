@@ -60,9 +60,8 @@ resource "oci_core_instance" "nextcloud" {
   metadata = {
     ssh_authorized_keys = file(pathexpand(var.ssh_public_key_path))
     user_data = base64encode(templatefile("${path.module}/cloud-init.yaml", {
-      duckdns_domain = var.duckdns_domain
-      duckdns_token  = var.duckdns_token
-      app_name       = var.app_name
+      domain   = var.domain
+      app_name = var.app_name
     }))
   }
 
