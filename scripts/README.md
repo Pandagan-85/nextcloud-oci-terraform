@@ -338,7 +338,7 @@ Genera il Caddyfile da template .env per reverse proxy.
 **⚠️ Importante:**
 
 - Richiede `DOMAIN` configurato in `.env`
-- Aggiungere record DNS A per `monitoring.TUODOMINIO`
+- Grafana accessibile via Tailscale Serve (`https://tailscale-hostname:3000`)
 - Configurare `GRAFANA_ADMIN_PASSWORD` prima del deployment
 
 ---

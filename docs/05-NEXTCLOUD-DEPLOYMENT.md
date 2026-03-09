@@ -5,7 +5,7 @@ Deployment di Nextcloud All-in-One (AIO) su OCI con dominio personalizzato e Let
 ## Prerequisites
 
 - ✅ Docker e Docker Compose installati
-- ✅ Firewall UFW configurato (porte 80, 443, 8080 aperte)
+- ✅ Firewall UFW configurato (porte 80, 443 aperte)
 - ✅ Dominio configurato e funzionante
 - ✅ Dominio che punta all'IP dell'istanza
 
@@ -84,10 +84,10 @@ cd ~/nextcloud
 | ----------- | -------- | ---------- | ---------------- |
 | 0.0.0.0/0   | TCP      | 80         | HTTP             |
 | 0.0.0.0/0   | TCP      | 443        | HTTPS            |
-| 0.0.0.0/0   | TCP      | 8080       | Nextcloud AIO    |
 | 0.0.0.0/0   | TCP      | 3478       | Talk (opzionale) |
 
-**NOTA**: Senza queste regole, anche con UFW configurato, il traffico non arriverà all'istanza!
+**NOTA**: La porta 8080/8443 (AIO admin) NON va esposta nelle Security Lists.
+L'interfaccia AIO è accessibile solo via Tailscale Serve o SSH tunnel.
 
 ## Step 3: Avvio Nextcloud AIO
 
@@ -135,13 +135,18 @@ docker exec nextcloud-aio-mastercontainer grep password /mnt/docker-aio-config/d
 
 ### 4.1 Accedi all'interfaccia AIO
 
-Apri il browser e vai a:
+Accedi via Tailscale Serve o SSH tunnel:
 
-```
-https://your-domain.example.com:8443
+```bash
+# Via Tailscale Serve (se configurato)
+https://tailscale-hostname:8443
+
+# Via SSH tunnel
+ssh -L 8080:localhost:8080 ubuntu@YOUR_IP
+# Poi apri http://localhost:8080 nel browser
 ```
 
-**NOTA**: Usa **HTTPS** (porta 8443), non HTTP!
+**NOTA**: L'interfaccia AIO non è esposta su internet. Richiede Tailscale o SSH tunnel.
 
 ### 4.2 Accetta certificato self-signed
 
@@ -298,20 +303,19 @@ Per usare lo storage OCI:
 2. Verifica UFW sull'istanza: `sudo ufw status`
 3. Testa connettività: `curl -I http://your-domain.example.com`
 
-### Errore: Cannot access port 8443
+### Errore: Cannot access AIO admin interface
 
-**Causa**: Firewall blocca porta 8080/8443
+**Causa**: Le porte 8080/8443 sono in ascolto solo su localhost (127.0.0.1)
 
-**Soluzione**:
+**Soluzione**: Accedi via Tailscale Serve o SSH tunnel:
 
 ```bash
-# Verifica UFW
-sudo ufw status | grep 8080
+# Via SSH tunnel
+ssh -L 8080:localhost:8080 ubuntu@YOUR_IP
+# Poi apri http://localhost:8080 nel browser
 
-# Se necessario
-sudo ufw allow 8080/tcp
-sudo ufw allow 8443/tcp
-sudo ufw reload
+# Via Tailscale Serve (se configurato)
+# https://tailscale-hostname:8443
 ```
 
 ### Container crashano continuamente

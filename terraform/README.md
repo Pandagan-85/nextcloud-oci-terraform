@@ -180,7 +180,7 @@ docker exec nextcloud-aio-mastercontainer \
 
 ### Access Nextcloud
 
-1. **AIO Admin:** `https://<public-ip>:8080`
+1. **AIO Admin:** via Tailscale Serve (`https://tailscale-hostname:8443`) o SSH tunnel (`ssh -L 8080:localhost:8080 ubuntu@<public-ip>`)
 2. **Nextcloud:** `https://your-domain.example.com`
 
 ---

@@ -64,10 +64,12 @@ sudo ufw allow 80/tcp comment 'HTTP'
 # HTTPS (Nextcloud web interface)
 sudo ufw allow 443/tcp comment 'HTTPS'
 
-# Nextcloud AIO Apache port (se necessario)
-sudo ufw allow 8080/tcp comment 'Nextcloud AIO'
+# NOTA: La porta 8080/8443 (AIO admin) NON va aperta nel firewall.
+# L'interfaccia AIO è in ascolto solo su 127.0.0.1 e si accede via
+# Tailscale Serve (https://tailscale-hostname:8443) oppure SSH tunnel:
+#   ssh -L 8080:localhost:8080 ubuntu@YOUR_IP
 
-# Nextcloud AIO Talk (WebRTC - opzionale)
+# Nextcloud AIO Talk (WebRTC - opzionale, solo se si usa Talk)
 sudo ufw allow 3478/tcp comment 'Nextcloud Talk TURN'
 sudo ufw allow 3478/udp comment 'Nextcloud Talk TURN'
 ```

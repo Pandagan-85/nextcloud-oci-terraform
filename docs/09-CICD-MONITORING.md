@@ -290,7 +290,7 @@ The monitoring stack uses **Prometheus + Grafana** with exporters for comprehens
 │                               │                   │
 └───────────────────────────────┼───────────────────┘
                                 ▼
-            https://monitoring.your-domain.example.com
+            https://tailscale-hostname:3000 (via Tailscale Serve)
 ```
 
 ### Components
@@ -304,8 +304,8 @@ The monitoring stack uses **Prometheus + Grafana** with exporters for comprehens
 
 2. **Grafana** - Visualization and dashboards
    - Pre-configured Prometheus datasource
-   - HTTPS access via Caddy
-   - URL: `https://monitoring.your-domain.example.com`
+   - HTTPS access via Tailscale Serve
+   - URL: `https://tailscale-hostname:3000 (via Tailscale Serve)`
 
 **Exporters:**
 
@@ -366,7 +366,7 @@ docker compose logs -f prometheus grafana
 #### 4. Access Grafana
 
 ```
-URL: https://monitoring.your-domain.example.com
+URL: https://tailscale-hostname:3000 (via Tailscale Serve)
 Username: admin
 Password: (from GRAFANA_ADMIN_PASSWORD in .env)
 ```

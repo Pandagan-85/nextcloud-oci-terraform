@@ -39,8 +39,8 @@ services:
     container_name: nextcloud-aio-mastercontainer
     restart: always
     ports:
-      - "8080:8080" # AIO admin interface
-      - "8443:8443" # AIO admin HTTPS
+      - "127.0.0.1:8080:8080" # AIO admin (solo localhost)
+      - "127.0.0.1:8443:8443" # AIO admin HTTPS (solo localhost)
     environment:
       - APACHE_PORT=11000
       - APACHE_IP_BINDING=0.0.0.0
@@ -142,7 +142,8 @@ certificate obtained successfully for your-domain.example.com
 
 ### 3. Configurazione AIO
 
-1. Accedi a: `https://YOUR_IP:8080`
+1. Accedi all'interfaccia AIO admin via Tailscale Serve (`https://tailscale-hostname:8443`)
+   oppure SSH tunnel (`ssh -L 8080:localhost:8080 ubuntu@YOUR_IP`, poi apri `http://localhost:8080`)
 2. Login con password generata
 3. Configura dominio: `your-domain.example.com`
 4. Seleziona componenti opzionali

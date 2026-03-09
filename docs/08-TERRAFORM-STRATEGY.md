@@ -451,7 +451,7 @@ terraform destroy -target=oci_core_instance.nextcloud_old
 terraform apply -var="instance_name=nextcloud-green"
 
 # 2. Test GREEN in parallelo (BLUE continua a funzionare)
-# Accedi a GREEN-IP:8080, verifica tutto OK
+# Accedi a GREEN AIO via SSH tunnel o Tailscale, verifica tutto OK
 
 # 3. Switch DNS da BLUE a GREEN
 # Update DNS A record to point to GREEN_IP
@@ -1020,8 +1020,8 @@ curl -s http://localhost:3000/api/health | jq
 dig your-domain.example.com +short
 # Deve mostrare IP pubblico del server
 
-dig monitoring.your-domain.example.com +short
-# Deve mostrare stesso IP (wildcard)
+# NOTA: monitoring non ha più un sottodominio pubblico,
+# si accede via Tailscale Serve (https://tailscale-hostname:3000)
 
 # 2. Verifica porte aperte (UFW)
 sudo ufw status
@@ -1029,7 +1029,7 @@ sudo ufw status
 # 22/tcp    ALLOW    (SSH)
 # 80/tcp    ALLOW    (HTTP)
 # 443/tcp   ALLOW    (HTTPS)
-# 8080/tcp  ALLOW    (Nextcloud AIO)
+# NOTA: 8080/8443 NON devono essere presenti (AIO solo localhost)
 
 # 3. Verifica container networks
 docker network ls
@@ -1037,14 +1037,13 @@ docker network ls
 # nextcloud-aio
 # monitoring
 
-# 4. Verifica Caddy può raggiungere Grafana
-docker exec caddy-reverse-proxy wget -qO- http://grafana:3000/api/health
+# 4. Verifica Grafana funziona
+curl -s http://localhost:3000/api/health
 # Output: {"database":"ok",...}
 
-# 5. Test connessione HTTPS (da locale)
-# Sul tuo PC:
-curl -I https://monitoring.your-domain.example.com
-# Deve mostrare: HTTP/2 200 (o HTTP/2 302 redirect to login)
+# 5. Test connessione Grafana (via Tailscale Serve)
+# https://tailscale-hostname:3000
+# Deve mostrare pagina login Grafana
 
 # 6. Verifica SSL certificate
 openssl s_client -connect your-domain.example.com:443 -servername your-domain.example.com < /dev/null 2>/dev/null | grep "subject="
@@ -1080,14 +1079,14 @@ du -sh /mnt/nextcloud-data/*
 
 ```bash
 # Nextcloud AIO (setup wizard se prima volta)
-https://<ip>:8080
-# Accetta certificato self-signed
+# Via Tailscale: https://tailscale-hostname:8443
+# Via SSH tunnel: ssh -L 8080:localhost:8080 ubuntu@<ip>
 
 # Nextcloud (dopo setup AIO)
 https://your-domain.example.com
 
-# Grafana Monitoring
-https://monitoring.your-domain.example.com
+# Grafana Monitoring (via Tailscale Serve)
+# https://tailscale-hostname:3000
 # Username: admin
 # Password: da step 3
 ```
