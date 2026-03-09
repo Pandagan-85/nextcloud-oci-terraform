@@ -90,9 +90,9 @@ output "deployment_summary" {
       vcn_cidr  = var.vcn_cidr
     }
     access = {
-      ssh            = "ssh ubuntu@${oci_core_instance.nextcloud.public_ip}"
-      aio_interface  = "localhost:8080 (via Tailscale Serve or SSH tunnel)"
-      nextcloud      = "https://${var.domain}"
+      ssh              = "ssh ubuntu@${oci_core_instance.nextcloud.public_ip}"
+      aio_interface    = "localhost:8080 (via Tailscale Serve or SSH tunnel)"
+      nextcloud        = "https://${var.domain}"
       private_services = "Komga :25600, Jellyfin :8096, Grafana :3000 (via Tailscale Serve)"
     }
   }
