@@ -84,6 +84,11 @@ services:
   # KOMGA - Manga/Comics Reader
   # ==============================================================================
 
+  # Komga and Jellyfin are accessed via Tailscale Serve (not Caddy)
+  # After docker compose up, run:
+  #   sudo tailscale serve --bg --https 25600 http://localhost:25600
+  #   sudo tailscale serve --bg --https 8096 http://localhost:8096
+
   komga:
     image: gotson/komga:latest
     container_name: komga
@@ -92,14 +97,36 @@ services:
     environment:
       - TZ=${TZ:-UTC}
 
+    ports:
+      - "127.0.0.1:25600:25600"
+
     volumes:
       # Library files from Nextcloud user directory (read-only)
       - /mnt/nextcloud-data/nextcloud-data/${NEXTCLOUD_USER}/files/${KOMGA_LIBRARY_PATH}:/data:ro
       # Komga config and database
       - komga_config:/config
 
-    networks:
-      - nextcloud-aio
+  # ==============================================================================
+  # JELLYFIN - Media Server
+  # ==============================================================================
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: always
+
+    environment:
+      - TZ=${TZ:-UTC}
+
+    ports:
+      - "127.0.0.1:8096:8096"
+
+    volumes:
+      # Video files from Nextcloud user directory (read-only)
+      - /mnt/nextcloud-data/nextcloud-data/${NEXTCLOUD_USER}/files/${JELLYFIN_LIBRARY_PATH}:/media:ro
+      # Jellyfin config and cache
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
 
   # ==============================================================================
   # MONITORING STACK
@@ -209,5 +236,7 @@ volumes:
   caddy_data:
   caddy_config:
   komga_config:
+  jellyfin_config:
+  jellyfin_cache:
   prometheus_data:
   grafana_data:

@@ -9,6 +9,10 @@
 #    This will generate the actual Caddyfile with your domain
 #
 # For Terraform deployments, this file is auto-generated via cloud-init
+#
+# NOTE: Only Nextcloud is exposed publicly via Caddy.
+# Private services (Komga, Jellyfin, Grafana) are accessed via Tailscale Serve.
+# See docker-compose.yml comments for Tailscale Serve setup commands.
 # ==============================================================================
 
 # Nextcloud AIO Main Site
@@ -43,42 +47,3 @@
         level INFO
     }
 }
-
-# Komga - Manga/Comics Reader
-{$KOMGA_SUBDOMAIN}.{$DOMAIN} {
-    reverse_proxy komga:25600
-
-    # Security headers
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Frame-Options "SAMEORIGIN"
-        X-Content-Type-Options "nosniff"
-        X-XSS-Protection "1; mode=block"
-    }
-
-    encode gzip
-
-    log {
-        output file /data/komga-access.log
-        level INFO
-    }
-}
-
-# Grafana Monitoring Dashboard (uncomment to enable)
-# monitoring.{$DOMAIN} {
-#     reverse_proxy grafana:3000
-#
-#     header {
-#         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-#         X-Frame-Options "SAMEORIGIN"
-#         X-Content-Type-Options "nosniff"
-#         X-XSS-Protection "1; mode=block"
-#     }
-#
-#     encode gzip
-#
-#     log {
-#         output file /data/grafana-access.log
-#         level INFO
-#     }
-# }

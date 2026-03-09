@@ -58,6 +58,9 @@ Thumbs.db
 tmp/
 temp/
 
+# Server deploy files (contain hardcoded personal values)
+server-deploy/
+
 # Internal Notes (private, not for public repo)
 CLAUDE_PROJECT_BRIEF.md
 START-HERE.md
