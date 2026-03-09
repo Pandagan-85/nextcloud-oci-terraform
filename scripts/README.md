@@ -343,7 +343,6 @@ Genera il Caddyfile da template .env per reverse proxy.
 
 ---
 
-
 #### `setup-precommit.sh`
 
 Configura pre-commit hooks per qualità del codice.

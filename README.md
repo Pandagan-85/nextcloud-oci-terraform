@@ -266,6 +266,7 @@ sudo tailscale serve --bg --https 3000  http://localhost:3000            # Grafa
 ```
 
 Access from any device on your Tailscale network:
+
 - **AIO Admin:** `https://your-tailscale-hostname:8443`
 - **Komga:** `https://your-tailscale-hostname:25600`
 - **Jellyfin:** `https://your-tailscale-hostname:8096`
@@ -287,12 +288,14 @@ All monitoring services bind to localhost only and are accessed via Tailscale Se
 Dual backup system for maximum data protection:
 
 **BorgBackup (automated):**
+
 - Daily encrypted backups at 04:00 UTC via Nextcloud AIO
 - Stored on persistent volume (`/mnt/nextcloud-data/borg-backups/`)
 - Automated pruning: 7 daily, 4 weekly, 6 monthly
 - Off-site sync to local PC via `local-backup-sync.sh`
 
 **Data export (human-readable):**
+
 - Weekly export of calendars (.ics) and contacts (.vcf)
 - Portable format, importable to Google/Apple/Outlook
 
