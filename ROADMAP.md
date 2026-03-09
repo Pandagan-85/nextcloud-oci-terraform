@@ -2,7 +2,7 @@
 
 Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
-**Ultimo aggiornamento**: 11 Novembre 2025
+**Ultimo aggiornamento**: Marzo 2025
 
 ---
 
@@ -13,7 +13,7 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - [x] Creazione istanza OCI A1.Flex (4 vCPU, 24GB RAM, 100GB storage)
 - [x] Configurazione Security Lists OCI (porte 22, 80, 443, 8080)
 - [x] Setup SSH con chiavi e script di connessione
-- [x] Configurazione dominio personalizzato
+- [x] Configurazione dominio personalizzato (migrato da DuckDNS a dominio custom)
 
 ### Sistema e Sicurezza Base
 
@@ -192,7 +192,31 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-## ⏳ FASE 4: MONITORING & OBSERVABILITY - IN CORSO
+## ✅ FASE 3.5: MEDIA SERVICES & PRIVATE ACCESS - COMPLETATA
+
+### Media Services (Marzo 2025)
+
+- [x] **Komga** - Manga/comics reader integrato con file Nextcloud
+  - [x] Lettura diretta dalla libreria Nextcloud (read-only mount)
+  - [x] Accesso sicuro via Tailscale Serve (HTTPS)
+  - [x] Compatibile con app mobile (Yokai su Android/e-ink)
+- [x] **Jellyfin** - Media server per video
+  - [x] Streaming video dalla libreria Nextcloud (read-only mount)
+  - [x] Accesso sicuro via Tailscale Serve (HTTPS)
+
+### Migrazione Sicurezza Servizi Privati
+
+- [x] **Migrazione da DuckDNS a dominio personalizzato**
+- [x] **Tailscale Serve** per servizi privati (Komga, Jellyfin, Grafana)
+  - [x] Servizi bound a localhost only (127.0.0.1)
+  - [x] HTTPS automatico via Tailscale Serve
+  - [x] Nessun sottodominio pubblico necessario
+  - [x] Caddy gestisce solo Nextcloud (unico servizio pubblico)
+- [x] **Valutate e scartate alternative**: basicauth (loop login), IP filtering in Docker (bridge IP issue), accesso diretto Tailscale IP (no SSL)
+
+---
+
+## ✅ FASE 4: MONITORING & OBSERVABILITY - COMPLETATA
 
 ### Monitoring Stack ✅ COMPLETATO
 
@@ -221,9 +245,9 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
   - [x] Localhost-only bindings (solo Grafana esposta via HTTPS)
 - [x] **Auto-deployment via cloud-init** - Monitoring sempre presente
 
-### Dashboard & Visualization 🚧 IN CORSO
+### Dashboard & Visualization ✅ COMPLETATO
 
-- [x] Grafana accessibile su `https://monitoring.your-domain.example.com`
+- [x] Grafana accessibile via Tailscale Serve (`https://tailscale-hostname:3000`)
 - [x] Import dashboard ID 179 (Docker Container & Host Metrics)
 - [x] Import dashboard ID 11074 (Node Exporter Full)
 - [x] Custom dashboard per Nextcloud-specific metrics
@@ -309,67 +333,37 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ## 🎯 Next Immediate Actions
 
-### ✅ Completato (10-11 Nov 2025)
+### ✅ Completato
 
 1. ✅ **Monitoring stack deployato** - Prometheus + Grafana + Node Exporter + cAdvisor
 2. ✅ **Cloud-init con GitHub clone** - Configuration auto-update da repo
 3. ✅ **Disaster recovery testato** - 3 cicli destroy/apply completati con successo
-4. ✅ **DNS wildcard configurato** - monitoring.your-domain.example.com funzionante
-5. ✅ **Documentazione workflow operativi** - git pull vs destroy/apply
-6. ✅ **SSL staging configuration** - Let's Encrypt rate limit bypassato
-7. ✅ **Grafana password configurata** - Login protetto
+4. ✅ **Documentazione workflow operativi** - git pull vs destroy/apply
+5. ✅ **SSL production certificates** - Let's Encrypt production attivi
+6. ✅ **Grafana password configurata** - Login protetto
+7. ✅ **Komga + Jellyfin** - Media services con accesso Tailscale Serve
+8. ✅ **Migrazione DuckDNS → dominio personalizzato**
+9. ✅ **README aggiornato** - Documentazione completa per portfolio
 
-### 🚧 In Corso (11 Nov 2025)
+### Prossimi Step
 
-1. **Monitoring Dashboards** ⏱️ 30 min
-
-   - [x] Accesso Grafana verificato (`https://monitoring.your-domain.example.com`)
-   - [x] Import Dashboard ID 179 (Docker Container & Host Metrics)
-   - [x] Import Dashboard ID 11074 (Node Exporter Full)
-   - [x] Verifica metriche Nextcloud, Caddy, containers
-
-2. **SSL Production Certificates** ⏱️ 2 min (martedì 11 Nov 21:04 CET)
-   - [ ] Rimuovere staging configuration da Caddyfile (righe 1-3)
-   - [ ] Restart Caddy: `docker compose restart caddy-reverse-proxy`
-   - [ ] Verifica certificati production: `openssl s_client -connect your-domain.example.com:443`
-   - [ ] Test sync dispositivi mobili (dopo SSL production)
-
-### Prossimi Step (Questa settimana)
-
-3. **Monitoring Alerting** ⏱️ 1-2 ore
-
+1. **Monitoring Alerting**
    - [ ] Configurare Alertmanager
    - [ ] Alert critici (disk space, memory, containers down)
    - [ ] Notification channels (email/webhook)
 
-4. **Test Sincronizzazione Completo** ⏱️ 30 min
-
-   - [ ] Test CalDAV/CardDAV da iPad/iPhone
-   - [ ] Test client desktop Nextcloud
-   - [ ] Verifica modifiche calendari/contatti sync bidirezionale
-
-5. **Portfolio Finalization** ⏱️ 1-2 ore
+2. **Portfolio Finalization**
    - [ ] Screenshot monitoring dashboards
-   - [ ] Screenshot architettura completa
-   - [ ] README update con monitoring stack
    - [ ] Blog post/writeup (opzionale)
 
 ### Note Operative
 
-**Stato SSL Certificates:**
+**Accesso Servizi Privati (via Tailscale Serve):**
 
-- **Attuale**: Let's Encrypt Staging (non trusted, warning browser)
-- **Impatto**: Sync dispositivi NON funziona (app Nextcloud rifiutano cert staging)
-- **Soluzione**: Rimuovere staging 11 Nov 21:04 CET (quando rate limit scade)
-- **Workaround temporaneo**: Accesso solo via browser web (bypass manuale warning)
-
-**Monitoring Access:**
-
-- Grafana: `https://monitoring.your-domain.example.com` (bypass SSL warning per ora)
+- Komga: `https://tailscale-hostname:25600`
+- Jellyfin: `https://tailscale-hostname:8096`
+- Grafana: `https://tailscale-hostname:3000`
 - Prometheus: `http://localhost:9090` (SSH tunnel: `ssh -L 9090:localhost:9090 ubuntu@IP`)
-- Node Exporter: `http://localhost:9100` (metrics endpoint)
-- cAdvisor: `http://localhost:8081` (container stats)
-- Caddy metrics: `http://localhost:2019/metrics`
 
 ---
 
@@ -381,6 +375,9 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 - **AIO vs Manual Setup**: AIO per gestione semplificata e best practices integrate
 - **PostgreSQL vs MySQL**: PostgreSQL incluso in AIO, migliori performance
 - **Dominio personalizzato**: Flessibile, professionale, compatibile Let's Encrypt
+- **Tailscale Serve vs sottodomini pubblici**: Servizi privati (Komga, Jellyfin, Grafana) non esposti su internet. Tailscale Serve fornisce HTTPS senza bisogno di DNS pubblici o certificati extra
+- **BasicAuth scartato**: Causa loop di login con Komga e Jellyfin (auth interna in conflitto)
+- **IP filtering in Docker scartato**: Caddy in Docker vede Docker bridge IP, non l'IP Tailscale del client
 
 ### Container rimossi e perché
 
@@ -423,4 +420,4 @@ Stato avanzamento del progetto Nextcloud su Oracle Cloud Infrastructure.
 
 ---
 
-_Ultimo aggiornamento: 11 Novembre 2025_
+_Ultimo aggiornamento: Marzo 2025_

@@ -137,33 +137,10 @@ resource "oci_core_security_list" "public" {
     }
   }
 
-  # Nextcloud AIO Admin Interface (8080)
-  ingress_security_rules {
-    description = "Nextcloud AIO admin interface"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    protocol    = "6" # TCP
-    stateless   = false
-
-    tcp_options {
-      min = 8080
-      max = 8080
-    }
-  }
-
-  # Nextcloud AIO Admin HTTPS (8443)
-  ingress_security_rules {
-    description = "Nextcloud AIO admin HTTPS"
-    source      = "0.0.0.0/0"
-    source_type = "CIDR_BLOCK"
-    protocol    = "6" # TCP
-    stateless   = false
-
-    tcp_options {
-      min = 8443
-      max = 8443
-    }
-  }
+  # Nextcloud AIO Admin Interface (8080/8443)
+  # NOT exposed publicly - access via Tailscale Serve or SSH tunnel:
+  #   sudo tailscale serve --bg --https 8443 http://localhost:8080
+  #   or: ssh -L 8080:localhost:8080 ubuntu@SERVER_IP
 
   # ICMP (Ping)
   ingress_security_rules {

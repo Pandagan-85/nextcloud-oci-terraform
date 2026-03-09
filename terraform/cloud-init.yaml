@@ -42,8 +42,7 @@ runcmd:
   - ufw allow 80/tcp comment 'HTTP'
   - ufw allow 443/tcp comment 'HTTPS'
   - ufw allow 443/udp comment 'HTTP/3'
-  - ufw allow 8080/tcp comment 'Nextcloud AIO'
-  - ufw allow 8443/tcp comment 'Nextcloud AIO HTTPS'
+  # NOTE: AIO ports 8080/8443 NOT opened - access via Tailscale or SSH tunnel
   - ufw --force enable
 
   # ===========================================================================
@@ -53,6 +52,32 @@ runcmd:
   - echo "=== Configuring Fail2ban ==="
   - systemctl enable fail2ban
   - systemctl start fail2ban
+
+  # Fail2ban jail for Nextcloud brute-force protection
+  - |
+    cat > /etc/fail2ban/filter.d/nextcloud.conf <<'F2BEOF'
+    [Definition]
+    _groupsre = (?:(?:,?\s*"\w+":(?:"[^"]*"|\w+))*)
+    failregex = ^\{%(_groupsre)s,?\s*"remoteAddr":"<HOST>"%(_groupsre)s,?\s*"message":"Login failed:
+                ^\{%(_groupsre)s,?\s*"remoteAddr":"<HOST>"%(_groupsre)s,?\s*"message":"Trusted domain error.
+    ignoreregex =
+    F2BEOF
+
+  - |
+    cat > /etc/fail2ban/jail.d/nextcloud.local <<'F2BJEOF'
+    [nextcloud]
+    backend = auto
+    enabled = true
+    port = 80,443
+    protocol = tcp
+    filter = nextcloud
+    maxretry = 5
+    bantime = 3600
+    findtime = 600
+    logpath = /var/lib/docker/volumes/nextcloud_aio_nextcloud/_data/data/nextcloud.log
+    F2BJEOF
+
+  - systemctl restart fail2ban
 
   # ===========================================================================
   # DOCKER INSTALLATION
@@ -147,9 +172,8 @@ runcmd:
   - cp repo-temp/docker/docker-compose.yml /home/ubuntu/nextcloud/
   - cp repo-temp/docker/Caddyfile.template /home/ubuntu/nextcloud/Caddyfile || cp repo-temp/docker/Caddyfile /home/ubuntu/nextcloud/
   - cp -r repo-temp/docker/monitoring /home/ubuntu/nextcloud/ 2>/dev/null || true
-  # Generate Caddyfile with correct domain (replace placeholder)
+  # Generate Caddyfile with correct domain (only Nextcloud is public)
   - sed -i "s/{\\$DOMAIN}/${domain}/g" /home/ubuntu/nextcloud/Caddyfile
-  - sed -i "s/{\\$KOMGA_SUBDOMAIN}/manga/g" /home/ubuntu/nextcloud/Caddyfile
 
   # Fix ownership
   - chown ubuntu:ubuntu /home/ubuntu/system-info.sh
@@ -171,7 +195,7 @@ runcmd:
     #   GRAFANA_ADMIN_PASSWORD=$(openssl rand -base64 32)
     #   echo "GRAFANA_ADMIN_PASSWORD=$GRAFANA_ADMIN_PASSWORD" >> /home/ubuntu/nextcloud/.env
     #
-    # Grafana will be accessible at: https://monitoring.${domain}
+    # Grafana accessible via Tailscale: https://YOUR_TAILSCALE_HOSTNAME:3000
     # Default username: admin
     #
     # ==============================================================================
@@ -255,20 +279,25 @@ write_files:
          docker compose restart grafana
 
       3. Access Services:
-         - Nextcloud AIO Setup: https://${domain}:8080
          - Nextcloud (after AIO setup): https://${domain}
-         - Komga (manga): https://manga.${domain}
-         - Grafana Monitoring: https://monitoring.${domain}
-           Username: admin
-           Password: (from step 1)
+         - AIO Admin: via Tailscale or SSH tunnel (port 8080)
+         - Komga: via Tailscale Serve (port 25600)
+         - Jellyfin: via Tailscale Serve (port 8096)
+         - Grafana: via Tailscale Serve (port 3000)
 
-      4. Nextcloud Initial Setup:
-         - Access AIO interface on port 8080
+      4. Setup Tailscale Serve for private services:
+         sudo tailscale serve --bg --https 25600 http://localhost:25600
+         sudo tailscale serve --bg --https 8096 http://localhost:8096
+         sudo tailscale serve --bg --https 3000 http://localhost:3000
+         sudo tailscale serve --bg --https 8443 http://localhost:8080
+
+      5. Nextcloud Initial Setup:
+         - Access AIO interface via Tailscale (port 8443)
          - Complete setup wizard
-         - Configure which containers to run (Talk, Collabora, etc.)
+         - Configure which containers to run
          - Set admin password
 
-      5. Monitoring Dashboards (Grafana):
+      6. Monitoring Dashboards (Grafana):
          - Import Dashboard ID 179: Docker Container Metrics
          - Import Dashboard ID 11074: Node Exporter System Metrics
 
@@ -291,9 +320,10 @@ final_message: |
   ✅ Persistent storage mounted (/mnt/nextcloud-data)
   ✅ Nextcloud AIO deployed
   ✅ Komga manga reader deployed
-  ✅ Caddy reverse proxy configured
+  ✅ Jellyfin media server deployed
+  ✅ Caddy reverse proxy configured (Nextcloud only)
   ✅ Prometheus + Grafana monitoring ready
-  ✅ Firewall (UFW) enabled
+  ✅ Firewall (UFW) enabled - AIO ports closed (use Tailscale)
   ✅ Fail2ban active
 
   📋 NEXT STEPS (Manual Configuration Required):
@@ -303,14 +333,19 @@ final_message: |
 
   Quick Start:
   1. SSH: ssh ubuntu@<public-ip>
-  2. Set Grafana password (see SETUP-NEXTCLOUD.txt)
-  3. Access Nextcloud AIO: https://<public-ip>:8080
-  4. Complete Nextcloud setup wizard
+  2. Install and configure Tailscale
+  3. Set Grafana password (see SETUP-NEXTCLOUD.txt)
+  4. Setup Tailscale Serve for private services
+  5. Access Nextcloud AIO via Tailscale and complete setup
 
-  Access URLs:
-  - Nextcloud (after setup): https://${domain}
-  - Komga (manga): https://manga.${domain}
-  - Grafana Monitoring: https://monitoring.${domain}
+  Public access:
+  - Nextcloud: https://${domain}
+
+  Private access (Tailscale only):
+  - AIO Admin: https://tailscale-hostname:8443
+  - Komga: https://tailscale-hostname:25600
+  - Jellyfin: https://tailscale-hostname:8096
+  - Grafana: https://tailscale-hostname:3000
 
   All data persisted: /mnt/nextcloud-data
   Configuration from: GitHub repo (always up-to-date!)

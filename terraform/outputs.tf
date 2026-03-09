@@ -58,8 +58,8 @@ output "ssh_command" {
 }
 
 output "nextcloud_aio_url" {
-  description = "Nextcloud AIO admin interface URL"
-  value       = "https://${oci_core_instance.nextcloud.public_ip}:8080"
+  description = "Nextcloud AIO admin interface (access via Tailscale or SSH tunnel)"
+  value       = "ssh -L 8080:localhost:8080 ubuntu@${oci_core_instance.nextcloud.public_ip} (then open http://localhost:8080)"
 }
 
 output "nextcloud_url" {
@@ -91,9 +91,9 @@ output "deployment_summary" {
     }
     access = {
       ssh            = "ssh ubuntu@${oci_core_instance.nextcloud.public_ip}"
-      aio_interface  = "https://${oci_core_instance.nextcloud.public_ip}:8080"
-      nextcloud = "https://${var.domain}"
-      komga     = "https://manga.${var.domain}"
+      aio_interface  = "localhost:8080 (via Tailscale Serve or SSH tunnel)"
+      nextcloud      = "https://${var.domain}"
+      private_services = "Komga :25600, Jellyfin :8096, Grafana :3000 (via Tailscale Serve)"
     }
   }
 }

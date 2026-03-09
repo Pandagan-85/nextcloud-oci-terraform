@@ -1,519 +1,392 @@
-# 🚀 Nextcloud on Oracle Cloud Free Tier
+# Nextcloud on Oracle Cloud Free Tier
 
-Production-ready Nextcloud self-hosted cloud infrastructure on Oracle Cloud Infrastructure's Always Free tier.
+Production-ready, self-hosted cloud infrastructure on Oracle Cloud Infrastructure's Always Free tier. Zero cost, fully automated, security hardened.
 
 [![Infrastructure](https://img.shields.io/badge/Infrastructure-Oracle_Cloud-red?logo=oracle)](https://www.oracle.com/cloud/free/)
+[![IaC](https://img.shields.io/badge/IaC-Terraform-purple?logo=terraform)](https://www.terraform.io/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-blue?logo=docker)](https://www.docker.com/)
 [![SSL](https://img.shields.io/badge/SSL-Let's_Encrypt-green?logo=letsencrypt)](https://letsencrypt.org/)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-black?logo=github)](https://github.com/features/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## 🎯 Project Overview
+## Project Overview
 
-This project demonstrates how to deploy a **fully-featured, secure, and scalable** Nextcloud instance on Oracle Cloud's free tier, achieving:
+A complete self-hosted cloud platform running on Oracle Cloud's Always Free tier, featuring Nextcloud as the core with integrated media services, full monitoring stack, and automated backups. Built with Infrastructure as Code principles and production-grade security.
 
-- **Zero cost** hosting (Always Free tier)
-- **Production-grade** security and SSL
-- **Automatic backups** and monitoring
-- **Comprehensive documentation** for reproducibility
+**Key highlights:**
 
-**Current Status:** ✅ Production Ready | 🔒 Security Hardened | 💾 Automated Backups
+- **Zero cost** - Runs entirely on OCI Always Free tier
+- **Infrastructure as Code** - One-command deployment with Terraform
+- **Multi-service platform** - Nextcloud + Komga + Jellyfin + Monitoring
+- **Security hardened** - Multi-layer firewall, Fail2ban, HTTPS, Tailscale VPN
+- **Automated backups** - Borg daily backups with off-site sync
+- **CI/CD pipeline** - GitHub Actions with security scanning
 
-## ✨ Features
+## Architecture
 
-### Infrastructure
+```
+                        INTERNET
+                           |
+              +---------------------------+
+              |  OCI Security Lists (FW)  |
+              |  Ports: 22, 80, 443       |
+              +---------------------------+
+                           |
+              +---------------------------+
+              |  Ubuntu 24.04 LTS (ARM64) |
+              |  UFW + Fail2ban (SSH +    |
+              |  Nextcloud login)         |
+              |  4 vCPU, 24GB RAM         |
+              +---------------------------+
+                     |            |
+          PUBLIC     |            |     PRIVATE (Tailscale VPN)
+                     |            |
+     +---------------+            +--------------------+
+     |                                                 |
+     v                                                 v
++--------------------+                  +----------------------------+
+|  Caddy Reverse     |                  |  Tailscale Serve (HTTPS)   |
+|  Proxy (SSL/TLS)   |                  |                            |
+|  Let's Encrypt     |                  |  - AIO Admin :8443         |
++--------------------+                  |  - Komga     :25600        |
+     |                                  |  - Jellyfin  :8096         |
+     v                                  |  - Grafana   :3000         |
++--------------------+                  +----------------------------+
+|  Nextcloud AIO     |                               |
+|  - PostgreSQL      |                  +----------------------------+
+|  - Redis           |                  |  Monitoring Stack          |
+|  - Collabora       |                  |  - Prometheus (30d)        |
+|  - BorgBackup      |                  |  - Grafana (dashboards)    |
++--------------------+                  |  - Node Exporter           |
+                                        |  - cAdvisor                |
+                                        +----------------------------+
 
-- ✅ Oracle Cloud A1.Flex instance (4 OCPU ARM, 24GB RAM, 100GB storage)
-- ✅ Automated deployment with Docker Compose
-- ✅ Custom domain with automatic SSL/TLS
-- ✅ Caddy reverse proxy with automatic SSL/TLS (Let's Encrypt)
++------------------------------------------------------------+
+|  Persistent Block Volume (100GB, prevent_destroy)          |
+|  /mnt/nextcloud-data/                                      |
+|    +-- nextcloud-data/ (user files, database, config)      |
+|    +-- borg-backups/ (encrypted daily backups)             |
++------------------------------------------------------------+
+```
+
+**Design pattern: "Pets vs Cattle"**
+
+- **Cattle (Compute):** Instance is ephemeral and fully recreatable via `terraform destroy` + `terraform apply`
+- **Pet (Storage):** Persistent block volume is protected (`prevent_destroy = true`) and holds all critical data
+- **Disaster Recovery:** Infrastructure can be rebuilt from scratch while data survives on the protected volume
+
+## Tech Stack
+
+| Component | Technology | Purpose |
+| --- | --- | --- |
+| **Cloud** | Oracle Cloud (OCI) | Always Free tier hosting |
+| **Compute** | A1.Flex (ARM64) | 4 vCPU, 24GB RAM |
+| **Storage** | OCI Block Volume | 100GB persistent data (prevent_destroy) |
+| **IaC** | Terraform | One-command infrastructure deployment |
+| **Containers** | Docker Compose | Service orchestration |
+| **Application** | Nextcloud AIO | Self-hosted cloud suite |
+| **Reverse Proxy** | Caddy | Automatic HTTPS with Let's Encrypt |
+| **VPN** | Tailscale | Private access to internal services |
+| **Manga/Comics** | Komga | Reader integrated with Nextcloud files |
+| **Media Server** | Jellyfin | Video streaming from Nextcloud files |
+| **Database** | PostgreSQL | Nextcloud database (via AIO) |
+| **Cache** | Redis | Performance optimization (via AIO) |
+| **Backup** | BorgBackup | Encrypted, deduplicated daily backups |
+| **Monitoring** | Prometheus + Grafana | Metrics collection and dashboards |
+| **Exporters** | Node Exporter, cAdvisor | System and container metrics |
+| **CI/CD** | GitHub Actions | Automated validation and security scans |
+| **Firewall** | UFW + Fail2ban | System security and SSH protection |
+| **SSL/TLS** | Let's Encrypt | Free automated certificates |
+
+## Features
+
+### Infrastructure & Deployment
+
+- **Terraform IaC** - Complete infrastructure defined as code (network, compute, storage)
+- **Cloud-init automation** - System bootstrap, Docker install, service deployment
+- **Persistent storage** - Protected block volume survives instance destroy/recreate
+- **Disaster recovery tested** - 3 complete destroy/apply cycles validated
+
+### Services
+
+- **Nextcloud Hub** - Files, Calendar, Contacts, Tasks, Collabora Office, Photos
+- **Komga** - Manga/comics reader serving files directly from Nextcloud library
+- **Jellyfin** - Media server streaming video from Nextcloud library
+- **Monitoring** - Prometheus + Grafana with pre-configured dashboards and exporters
 
 ### Security
 
-- ✅ UFW firewall configured
-- ✅ Fail2ban SSH protection
-- ✅ HTTPS-only with HSTS headers
-- ✅ SSH key-based authentication
-- ✅ Security Lists (OCI cloud firewall)
+- **Multi-layer firewall** - OCI Security Lists + UFW (deny by default)
+- **SSH hardening** - Key-based auth only, Fail2ban brute-force protection
+- **Nextcloud brute-force protection** - Fail2ban monitoring login attempts (5 attempts → 1h ban)
+- **HTTPS everywhere** - Caddy with automatic Let's Encrypt certificates
+- **Security headers** - HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy
+- **AIO admin locked down** - Ports 8080/8443 closed to internet, accessible only via Tailscale
+- **Private services** - Komga, Jellyfin, Grafana bound to localhost, accessible only via Tailscale VPN
+- **2FA (TOTP)** - Two-factor authentication on Nextcloud
+- **Unattended upgrades** - Automatic security updates
 
-### Nextcloud Features
+### Backup & Recovery
 
-- ✅ Nextcloud Hub 25 Autumn (latest version)
-- ✅ Nextcloud Office (Collabora Online)
-- ✅ Calendar, Contacts, Tasks (CalDAV/CardDAV)
-- ✅ Photo management with preview generation
-- ✅ File sync and sharing
-- ✅ Automated daily backups with off-site copies
-- ⚙️ Optimized for single-user performance (Talk & Whiteboard removed)
+- **BorgBackup** - Encrypted daily backups at 04:00 UTC
+- **Automated pruning** - 7 daily, 4 weekly, 6 monthly retention
+- **Off-site sync** - rsync to local PC with integrity verification
+- **Data export** - Human-readable exports (calendars .ics, contacts .vcf)
+- **Local automation** - `local-backup-sync.sh` for cron-based backup sync
 
-### Automation & DevOps
+### CI/CD & Quality
 
-- ✅ **Terraform IaC** - One-command infrastructure deployment
-- ✅ **GitHub Actions CI/CD** - Automated testing and validation
-- ✅ **Cloud-init** - Automatic system bootstrap
-- ✅ **Monitoring Stack** - Prometheus + Grafana + exporters
-- ✅ **Backup Automation** - Script for local backup sync with integrity checks
-- ✅ **Pre-commit Hooks** - Local validation before commits
+- **3 GitHub Actions workflows** - CI validation, weekly security scans, Docker image scans
+- **5-stage CI pipeline** - Validation, security, Docker checks, PR automation, summary
+- **Security scanning** - tfsec, Trivy, Gitleaks, ShellCheck
+- **Pre-commit hooks** - Local validation before every commit
+- **Conventional commits** - Standardized commit message format
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 nextcloud-oci-terraform/
-├── 📄 README.md                    # This file - project overview
-├── 📄 ROADMAP.md                   # Project roadmap and progress
-├── 📄 SSL-PRODUCTION-SWITCH.md     # Guide for SSL staging → production
-│
-├── 📂 docs/                        # Complete documentation
-│   ├── 01-INITIAL-SETUP.md         # SSH and first connection
-│   ├── 02-SYSTEM-SETUP.md          # System updates and packages
-│   ├── 03-DOCKER-SETUP.md          # Docker installation
-│   ├── 04-FIREWALL-SECURITY.md     # UFW and Fail2ban config
-│   ├── 05-CADDY-REVERSE-PROXY.md   # Caddy setup
-│   ├── 05-NEXTCLOUD-DEPLOYMENT.md  # Nextcloud AIO deployment
-│   ├── 06-BACKUP-RESTORE.md        # Backup strategy
-│   ├── 07-CRON-AUTOMATION.md       # Cron setup for backups
-│   ├── 08-TERRAFORM-STRATEGY.md    # IaC patterns and workflows
-│   ├── 09-CICD-MONITORING.md       # CI/CD pipeline architecture
-│   └── 10-LOCAL-BACKUP-MANAGEMENT.md  # ⭐ Local backup automation
-│
-├── 📂 terraform/                   # Infrastructure as Code
-│   ├── provider.tf                 # OCI provider configuration
-│   ├── variables.tf                # Configurable variables
-│   ├── network.tf                  # VCN, subnet, security lists
-│   ├── compute.tf                  # Compute instance
-│   ├── storage.tf                  # Persistent data volume
-│   ├── outputs.tf                  # Deployment outputs
-│   ├── cloud-init.yaml             # Automated system bootstrap
-│   ├── terraform.tfvars.example    # Configuration template
-│   └── README.md                   # Terraform guide
-│
-├── 📂 docker/                      # Docker Compose stack
-│   ├── docker-compose.yml          # Nextcloud + Monitoring services
-│   ├── Caddyfile                   # Caddy reverse proxy config
-│   └── monitoring/
-│       └── prometheus.yml          # Prometheus configuration
-│
-├── 📂 scripts/                     # Automation scripts
-│   ├── local-backup-sync.sh        # ⭐ Automated backup sync
-│   ├── deploy-nextcloud.sh         # Nextcloud deployment
-│   ├── ssh-connect.sh              # Quick SSH connection
-│   ├── download-backup.sh          # Legacy backup download
-│   ├── export-data.sh              # Human-readable data export
-│   ├── weekly-backup.sh            # Backup wrapper
-│   ├── setup-cron.sh               # Cron automation setup
-│   └── README.md                   # Scripts documentation
-│
-├── 📂 .github/workflows/           # CI/CD pipelines
-│   ├── ci.yml                      # Main CI pipeline (PR + push)
-│   ├── security-deep.yml           # Weekly security scans
-│   └── docker-scan.yml             # Docker vulnerability scans
-│
-├── 📄 .pre-commit-config.yaml      # Pre-commit hooks config
-├── 📄 .gitignore                   # Git ignore rules
-└── 📄 .env.example                 # Environment variables template
+|
++-- terraform/                    # Infrastructure as Code
+|   +-- provider.tf               # OCI provider configuration
+|   +-- variables.tf              # Configurable variables
+|   +-- network.tf                # VCN, subnet, security lists
+|   +-- compute.tf                # A1.Flex instance + cloud-init
+|   +-- storage.tf                # Persistent block volume (protected)
+|   +-- outputs.tf                # Deployment outputs
+|   +-- cloud-init.yaml           # Full system bootstrap (319 lines)
+|   +-- terraform.tfvars.example  # Configuration template
+|   +-- README.md                 # Terraform deployment guide
+|
++-- docker/                       # Container orchestration
+|   +-- docker-compose.yml        # All services definition
+|   +-- Caddyfile                 # Reverse proxy configuration
+|   +-- monitoring/
+|       +-- prometheus.yml        # Prometheus scrape config
+|       +-- grafana/provisioning/ # Auto-provisioned dashboards & datasources
+|
++-- scripts/                      # Automation (11 scripts)
+|   +-- local-backup-sync.sh     # Borg backup sync + integrity check
+|   +-- create-backup.sh          # On-demand backup trigger
+|   +-- export-data.sh            # Calendar/contacts export
+|   +-- generate-config.sh        # Caddyfile generator from .env
+|   +-- deploy-nextcloud.sh       # Initial deployment
+|   +-- borg-prune.sh             # Server-side backup pruning
+|   +-- setup-cron.sh             # Backup cron automation
+|   +-- ssh-connect.sh            # Quick SSH connection
+|   +-- README.md                 # Scripts reference
+|
++-- docs/                         # Comprehensive guides (11 documents)
+|   +-- 01-INITIAL-SETUP.md      # SSH and first connection
+|   +-- 02-SYSTEM-SETUP.md       # System configuration
+|   +-- 03-DOCKER-SETUP.md       # Docker installation
+|   +-- 04-FIREWALL-SECURITY.md  # UFW and Fail2ban
+|   +-- 05-CADDY-REVERSE-PROXY.md  # Caddy and SSL setup
+|   +-- 05-NEXTCLOUD-DEPLOYMENT.md  # Nextcloud AIO deployment
+|   +-- 06-BACKUP-RESTORE.md     # Backup strategy and recovery
+|   +-- 07-CRON-AUTOMATION.md    # Scheduled tasks setup
+|   +-- 08-TERRAFORM-STRATEGY.md # IaC patterns and workflows
+|   +-- 09-CICD-MONITORING.md    # CI/CD pipeline architecture
+|   +-- 10-LOCAL-BACKUP-MANAGEMENT.md  # Local backup automation
+|
++-- .github/workflows/           # CI/CD pipelines
+|   +-- ci.yml                   # Main CI (PR + push validation)
+|   +-- security-deep.yml        # Weekly security scans
+|   +-- docker-image-scan.yml    # Weekly Docker vulnerability scans
+|
++-- .env.example                 # Environment variables template
++-- .pre-commit-config.yaml      # Pre-commit hooks
++-- ROADMAP.md                   # Project roadmap and progress
++-- README.md                    # This file
 ```
 
-## 📚 Tech Stack
+## Quick Start
 
-| Component          | Technology              | Purpose                                 |
-| ------------------ | ----------------------- | --------------------------------------- |
-| **Cloud Provider** | Oracle Cloud (OCI)      | Always Free tier hosting                |
-| **Compute**        | A1.Flex (ARM64)         | 4 vCPU, 24GB RAM                        |
-| **Storage**        | OCI Block Volume        | 100GB persistent data (prevent_destroy) |
-| **Containers**     | Docker + Docker Compose | Service orchestration                   |
-| **Application**    | Nextcloud AIO           | All-in-One cloud suite                  |
-| **Reverse Proxy**  | Caddy                   | Automatic HTTPS, HTTP/3                 |
-| **Database**       | PostgreSQL              | Nextcloud database                      |
-| **Cache**          | Redis                   | Performance optimization                |
-| **Backup**         | BorgBackup              | Encrypted daily backups                 |
-| **DNS**            | Custom domain           | DNS A record pointing to server         |
-| **Manga/Comics**   | Komga                   | Manga/comics reader from Nextcloud files|
-| **Firewall**       | UFW + Fail2ban          | System security                         |
-| **SSL/TLS**        | Let's Encrypt           | Free automated certificates             |
-| **Monitoring**     | Prometheus + Grafana    | Metrics and dashboards               |
-| **Exporters**      | Node Exporter, cAdvisor | System and container metrics         |
+### Option A: Terraform Deployment (Recommended)
 
-## 🏗️ Architecture
+One-command infrastructure deployment. Everything is automated.
 
-```
-Internet
-   ↓
-┌─────────────────────────────────────┐
-│  OCI Security Lists (Cloud FW)      │
-│  Ports: 22, 80, 443, 8080           │
-└─────────────────────────────────────┘
-   ↓
-┌─────────────────────────────────────┐
-│  Ubuntu 24.04 LTS (ARM64)           │
-│  UFW Firewall + Fail2ban            │
-│  A1.Flex: 4 vCPU, 24GB RAM          │
-└─────────────────────────────────────┘
-   ↓                                   ║
-┌─────────────────────────────────────┐║
-│  Caddy Reverse Proxy                │║
-│  - HTTPS (443) + Let's Encrypt      │║
-│  - HTTP (80) → HTTPS redirect       │║   ┌──────────────────────────────┐
-│  - monitoring.* → Grafana           │║   │ 💾 Persistent Block Volume   │
-└─────────────────────────────────────┘║   │  (100GB, prevent_destroy)    │
-   ↓ (internal port 11000)             ║   │                              │
-┌─────────────────────────────────────┐║   │ /mnt/nextcloud-data/         │
-│  Nextcloud AIO Master Container     │║   │  ├─ data/ (user files)       │
-│  - Orchestrates all services        │║   │  ├─ database/ (PostgreSQL)   │
-└─────────────────────────────────────┘║   │  ├─ config/ (Nextcloud cfg)  │
-   ↓                                   ║   │  └─ borg-backups/ (7 days)   │
-┌─────────────────────────────────────┐║   │                              │
-│  Nextcloud Services (Docker)        │║   │ ⚠️  Survives instance destroy │
-│  - Nextcloud (PHP-FPM)              ║╝══>│    "Pets vs Cattle" strategy │
-│  - PostgreSQL Database              │    └──────────────────────────────┘
-│  - Redis Cache                      │
-│  - Apache Web Server                │
-│  - Collabora Office                 │
-│  - Imaginary (image processing)     │
-│  - Notify Push                      │
-│  - BorgBackup (daily 04:00 UTC)     │
-└─────────────────────────────────────┘
-
-┌─────────────────────────────────────┐
-│  Monitoring Stack (Docker)          │
-│  - Prometheus (metrics storage)     │
-│  - Grafana (dashboards)             │
-│  - Node Exporter (system metrics)   │
-│  - cAdvisor (container metrics)     │
-└─────────────────────────────────────┘
-```
-
-**Architettura "Pets vs Cattle":**
-
-- 🐄 **Cattle (Compute)**: L'istanza è ricreabile, può essere distrutta e ricreata senza perdita dati
-- 🐕 **Pet (Storage)**: Il volume persistente è protetto (`prevent_destroy = true`) e contiene TUTTI i dati critici
-- 🔄 **Disaster Recovery**: `terraform destroy` + `terraform apply` ricrea l'infrastruttura mantenendo i dati
-
-## 🚀 Quick Start
-
-**Choose your deployment method:**
-
-### 🎯 Option A: Terraform Deployment (Recommended - Fully Automated)
-
-**One command deploys everything!** Infrastructure as Code approach.
-
-**Prerequisites:**
-
-- Oracle Cloud account (free tier) with API credentials
-- Terraform installed locally
-- A domain with DNS A record pointing to server IP
-
-**Setup:**
+**Prerequisites:** Oracle Cloud account (free tier), Terraform, a domain with DNS A record
 
 ```bash
-# 1. Clone repository
+# 1. Clone and configure
 git clone https://github.com/Pandagan-85/nextcloud-oci-terraform.git
 cd nextcloud-oci-terraform/terraform
-
-# 2. Configure Terraform variables
 cp terraform.tfvars.example terraform.tfvars
-nano terraform.tfvars  # Add OCI credentials, domain, etc.
+nano terraform.tfvars  # Add OCI credentials and domain
 
-# 3. Deploy infrastructure
+# 2. Deploy
 terraform init
-terraform plan    # Review changes
-terraform apply   # Deploy! ☕ Takes ~10 minutes
+terraform plan
+terraform apply   # Full deployment in ~10 minutes
 
-# 4. Get outputs
-terraform output  # Shows public IP, URLs, SSH command
+# 3. Access
+terraform output  # Shows IPs, URLs, SSH command
 ```
 
 **What gets deployed automatically:**
 
-- ✅ OCI compute instance (4 OCPU ARM, 24GB RAM)
-- ✅ Persistent data volume (100GB, protected from destroy)
-- ✅ Network (VCN, subnet, security lists, internet gateway)
-- ✅ Firewall configured (UFW + Fail2ban)
-- ✅ Docker installed and configured
-- ✅ Nextcloud AIO + Caddy deployed
-- ✅ DNS configured for your domain
-- ✅ SSL certificates obtained automatically
+- OCI compute instance (4 vCPU ARM, 24GB RAM)
+- Persistent data volume (100GB, protected)
+- Network infrastructure (VCN, subnet, security lists, internet gateway)
+- System hardening (UFW, Fail2ban, unattended-upgrades)
+- Docker + all services (Nextcloud, Caddy, monitoring stack)
+- SSL certificates (Let's Encrypt)
 
-**Access your instance:**
+See [`terraform/README.md`](terraform/README.md) for the detailed guide.
 
-```bash
-# Get connection info
-terraform output ssh_command
-terraform output nextcloud_url
-```
+### Option B: Manual Deployment
 
-See: [`terraform/README.md`](terraform/README.md) for detailed guide.
-
----
-
-### 🛠️ Option B: Manual Deployment (Step-by-Step)
-
-**For learning or custom setups.** Full control over each step.
-
-**Prerequisites:**
-
-- Oracle Cloud account (free tier)
-- Existing OCI instance (Ubuntu 24.04 LTS, ARM64)
-- SSH key pair
-- A domain with DNS A record pointing to server IP
-
-**Setup:**
+Step-by-step deployment for learning or custom setups.
 
 ```bash
-# 1. Clone repository
+# 1. Clone and configure
 git clone https://github.com/Pandagan-85/nextcloud-oci-terraform.git
 cd nextcloud-oci-terraform
-
-# 2. Configure environment
 cp .env.example .env
-nano .env  # Add your instance IP, SSH key, domain
+nano .env  # Configure your values
 
-# 3. Generate configuration files
-./scripts/generate-config.sh  # Creates Caddyfile with your domain
-
-# 4. Connect to instance
-./scripts/ssh-connect.sh
-
-# 5. Deploy Nextcloud
+# 2. Generate config and deploy
+./scripts/generate-config.sh
 ./scripts/deploy-nextcloud.sh
 ```
 
-**Manual steps required:**
+Follow the guides in [`docs/`](docs/) for each step.
 
-1. Create OCI instance manually (VM.Standard.A1.Flex, 4 OCPU, 24GB RAM)
-2. Configure Security Lists (ports 22, 80, 443, 8080)
-3. Update system: [`docs/02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)
-4. Install Docker: [`docs/03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)
-5. Configure firewall: [`docs/04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)
-6. Deploy: [`docs/05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)
+### Private Services Setup (Tailscale Serve)
 
-**Access:**
+Komga, Jellyfin, and Grafana are not exposed publicly. They are accessible only through Tailscale VPN with HTTPS:
 
-- Admin interface: `https://YOUR_IP:8080`
-- Nextcloud: `https://your-domain.example.com`
+```bash
+# On the server, after docker compose up:
+sudo tailscale serve --bg --https 8443  https+insecure://localhost:8080  # AIO Admin
+sudo tailscale serve --bg --https 25600 http://localhost:25600           # Komga
+sudo tailscale serve --bg --https 8096  http://localhost:8096            # Jellyfin
+sudo tailscale serve --bg --https 3000  http://localhost:3000            # Grafana
+```
 
-## 📖 Documentation
+Access from any device on your Tailscale network:
+- **AIO Admin:** `https://your-tailscale-hostname:8443`
+- **Komga:** `https://your-tailscale-hostname:25600`
+- **Jellyfin:** `https://your-tailscale-hostname:8096`
+- **Grafana:** `https://your-tailscale-hostname:3000`
 
-Comprehensive step-by-step guides:
+## Monitoring
 
-| Document                                                              | Description                            |
-| --------------------------------------------------------------------- | -------------------------------------- |
-| **Setup & Deployment**                                                |                                        |
-| [`01-INITIAL-SETUP.md`](docs/01-INITIAL-SETUP.md)                     | SSH configuration and first connection |
-| [`02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md)                       | System updates and base packages        |
-| [`03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md)                       | Docker and Docker Compose installation  |
-| [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md)             | UFW and Fail2ban configuration          |
-| [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md)         | Caddy setup for automatic SSL           |
-| [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md)       | Nextcloud AIO deployment guide          |
-| **Backup & Recovery**                                                 |                                         |
-| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md)                   | Backup strategy and disaster recovery   |
-| [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | ⭐ Local backup automation with script  |
-| **Infrastructure as Code**                                            |                                         |
-| [`terraform/README.md`](terraform/README.md)                          | Terraform deployment guide              |
-| [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md)           | IaC strategy and operational workflows  |
-| **CI/CD & Monitoring**                                                |                                         |
-| [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md)                 | GitHub Actions pipeline and monitoring  |
-| **Operations**                                                        |                                         |
-| [`scripts/README.md`](scripts/README.md)                              | All available scripts reference         |
+The monitoring stack collects system and container metrics:
 
-## 🔐 Security Features
+- **Prometheus** - Metrics storage with 30-day retention, 15s scrape interval
+- **Grafana** - Pre-provisioned dashboards (Docker metrics, Node Exporter, Caddy)
+- **Node Exporter** - System metrics (CPU, RAM, disk, network)
+- **cAdvisor** - Per-container resource usage
 
-- **Firewall**: Multi-layer (OCI Security Lists + UFW)
-- **SSH**: Key-based authentication only, Fail2ban protection
-- **HTTPS**: Automatic SSL/TLS with Let's Encrypt
-- **Headers**: HSTS, X-Frame-Options, CSP configured
-- **Updates**: Unattended security updates enabled
-- **Backups**: Automated daily backups with 7-day retention
+All monitoring services bind to localhost only and are accessed via Tailscale Serve.
 
-## 💾 Backup Strategy
+## Backup Strategy
 
 Dual backup system for maximum data protection:
 
-### Borg Backup (System-level)
+**BorgBackup (automated):**
+- Daily encrypted backups at 04:00 UTC via Nextcloud AIO
+- Stored on persistent volume (`/mnt/nextcloud-data/borg-backups/`)
+- Automated pruning: 7 daily, 4 weekly, 6 monthly
+- Off-site sync to local PC via `local-backup-sync.sh`
 
-- **Automated**: Daily backups at 04:00 UTC via Nextcloud AIO
-- **Location**: `/mnt/nextcloud-data/borg-backups/` on OCI instance
-  - ⚠️ **IMPORTANTE**: I backup sono sul **volume persistente** (`/mnt/nextcloud-data/`)
-  - Questo significa che sopravvivono al destroy/recreate dell'istanza compute
-  - Il volume ha `prevent_destroy = true` per protezione totale
-  - Strategia "Pets vs Cattle": compute è ricreabile, dati sono protetti
-- **Retention**: Automated pruning every Monday at 06:00 UTC
-  - Daily: keep last 7 days
-  - Weekly: keep last 4 weeks
-  - Monthly: keep last 6 months
-  - Script: `/usr/local/bin/borg-prune.sh` (cronjob)
-- **Encryption**: Yes (password-protected)
-- **Off-site**: Automated sync to local PC with `local-backup-sync.sh` script
-- **Components**:
-  - Database (PostgreSQL)
-  - User files and data
-  - Configuration
-  - App data
-
-### Data Export (Human-readable)
-
-- **Automated**: Weekly export via cron (Sunday 22:00)
-- **Location**: `~/nextcloud-exports/` on local PC
-- **Formats**:
-  - Calendars (.ics files)
-  - Contacts (.vcf file)
-  - File list
-- **Portability**: Import to Google/Apple/Outlook
-- **Script**: `export-data.sh`
-
-### Local Backup Automation ⭐
-
-Automated script for syncing backups to your local PC:
+**Data export (human-readable):**
+- Weekly export of calendars (.ics) and contacts (.vcf)
+- Portable format, importable to Google/Apple/Outlook
 
 ```bash
-# One-time setup (5 minutes)
+# Sync backups to local PC (one-time setup)
 ln -s ~/Projects/nextcloud-oci-terraform/scripts/local-backup-sync.sh ~/bin/nextcloud-backup
-echo 'export BORG_PASSPHRASE="your-password"' >> ~/.bash_profile
 
-# Interactive sync + extraction
-nextcloud-backup
-
-# Automated sync only (perfect for cron)
-nextcloud-backup --sync-only
-
-# Setup weekly automation
-crontab -e
-# Add: 0 22 * * 0 $HOME/bin/nextcloud-backup --sync-only >> $HOME/nextcloud-backup-cron.log 2>&1
+# Run sync
+nextcloud-backup --sync-only    # Automated (cron-friendly)
+nextcloud-backup                # Interactive (sync + extract)
 ```
 
-**Features:**
+See [`docs/10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) for the complete guide.
 
-- ✅ rsync incremental sync (only differences)
-- ✅ Automatic integrity verification (`borg check`)
-- ✅ Interactive extraction with permission fixing
-- ✅ Complete logging and statistics
-- ✅ Mount backups as filesystem for exploration
+## CI/CD Pipeline
 
-See: [`docs/10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) for complete guide
+Three GitHub Actions workflows ensure code quality and security:
 
-## 📊 Resource Usage
+| Workflow | Trigger | Purpose |
+| --- | --- | --- |
+| **CI Pipeline** | PR + push to main | Terraform validation, YAML/Docker/Markdown/Shell linting, security scans |
+| **Security Deep** | Weekly (Monday) | tfsec, Trivy, Gitleaks, ShellCheck with SARIF upload |
+| **Docker Scan** | Weekly (Wednesday) | Container image vulnerability scanning |
 
-Typical resource consumption (optimized single-user setup):
+The CI pipeline runs in 5 stages: fast validation, security scans, Docker checks, PR automation, and summary. Pre-commit hooks provide local validation before every commit.
 
-| Metric      | Usage            | Available   | Note                   |
-| ----------- | ---------------- | ----------- | ---------------------- |
-| **RAM**     | ~1GB active      | 24GB        | Optimized (no Talk/WB) |
-| **CPU**     | 5-10% avg        | 4 cores     | Low idle consumption   |
-| **Storage** | ~5-10GB (base)   | 100GB       | + user data + backups  |
-| **Network** | Depends on usage | Unlimited\* |
+See [`docs/09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md) for pipeline architecture details.
 
-\*OCI Free Tier includes 10TB outbound/month
+## Resource Usage
 
-## 🛠️ Maintenance
+Typical consumption on OCI Always Free tier (single-user setup):
 
-### Updates
+| Resource | Usage | Available | Note |
+| --- | --- | --- | --- |
+| **RAM** | ~1GB active | 24GB | Optimized (Talk/Whiteboard removed) |
+| **CPU** | 5-10% avg | 4 cores | Low idle consumption |
+| **Storage** | ~5-10GB base | 100GB data volume | + user data + backups |
+| **Network** | Variable | 10TB/month | OCI Free Tier outbound |
+| **Cost** | $0.00 | - | Always Free tier |
 
-```bash
-# Update Nextcloud (via AIO interface)
-https://YOUR_DOMAIN:8080 → Updates tab
+## Documentation
 
-# Update system packages
-ssh YOUR_INSTANCE
-sudo apt update && sudo apt upgrade -y
+| Guide | Description |
+| --- | --- |
+| [`01-INITIAL-SETUP.md`](docs/01-INITIAL-SETUP.md) | SSH configuration and first connection |
+| [`02-SYSTEM-SETUP.md`](docs/02-SYSTEM-SETUP.md) | System updates and base packages |
+| [`03-DOCKER-SETUP.md`](docs/03-DOCKER-SETUP.md) | Docker and Docker Compose installation |
+| [`04-FIREWALL-SECURITY.md`](docs/04-FIREWALL-SECURITY.md) | UFW and Fail2ban configuration |
+| [`05-CADDY-REVERSE-PROXY.md`](docs/05-CADDY-REVERSE-PROXY.md) | Caddy setup for automatic SSL |
+| [`05-NEXTCLOUD-DEPLOYMENT.md`](docs/05-NEXTCLOUD-DEPLOYMENT.md) | Nextcloud AIO deployment guide |
+| [`06-BACKUP-RESTORE.md`](docs/06-BACKUP-RESTORE.md) | Backup strategy and disaster recovery |
+| [`07-CRON-AUTOMATION.md`](docs/07-CRON-AUTOMATION.md) | Scheduled tasks setup |
+| [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md) | IaC patterns and operational workflows |
+| [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md) | CI/CD pipeline architecture |
+| [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | Local backup automation guide |
+| [`terraform/README.md`](terraform/README.md) | Terraform deployment guide |
+| [`scripts/README.md`](scripts/README.md) | Scripts reference |
+| [`ROADMAP.md`](ROADMAP.md) | Project roadmap and progress |
 
-# Update Docker images
-cd ~/nextcloud
-docker compose pull
-docker compose up -d
-```
+## Roadmap
 
-### Monitoring
+### Completed
 
-**Grafana Dashboard:**
+- [x] **Infrastructure** - OCI Always Free tier with Terraform IaC
+- [x] **Nextcloud** - Full deployment with Collabora, Calendar, Contacts, Files
+- [x] **Security** - Multi-layer firewall, Fail2ban, HTTPS, 2FA
+- [x] **Backups** - Borg daily + data exports + off-site sync
+- [x] **Monitoring** - Prometheus + Grafana + exporters
+- [x] **CI/CD** - 3 GitHub Actions workflows + pre-commit hooks
+- [x] **Media services** - Komga (manga) + Jellyfin (video) via Tailscale
+- [x] **Disaster recovery** - Tested with 3 destroy/apply cycles
 
-- Access: `https://monitoring.your-domain.example.com`
-- Username: `admin`
-- Password: Configure in `.env` file (`GRAFANA_ADMIN_PASSWORD`)
+### Planned
 
-**Available Metrics:**
+- [ ] Alertmanager for critical notifications (disk, memory, container health)
+- [ ] Off-site backup to OCI Object Storage
+- [ ] Log aggregation (Loki + Promtail)
+- [ ] Additional services (Vaultwarden, Uptime Kuma)
 
-- System resources (CPU, RAM, disk, network) via Node Exporter
-- Docker container metrics via cAdvisor
-- Caddy reverse proxy metrics
-- Prometheus 30-day retention
-
-**Manual Monitoring Commands:**
-
-```bash
-# Check container status
-docker ps
-
-# View logs
-docker logs nextcloud-aio-nextcloud
-docker logs caddy-reverse-proxy
-docker logs grafana
-docker logs prometheus
-
-# Resource usage real-time
-docker stats
-
-# SSL certificate expiry
-echo | openssl s_client -connect YOUR_DOMAIN:443 2>/dev/null | openssl x509 -noout -dates
-
-# Prometheus health check
-curl -s http://localhost:9090/-/healthy
-
-# Check Grafana status
-curl -s http://localhost:3000/api/health
-```
-
-## 🧪 Troubleshooting
-
-Common issues and solutions documented in:
-
-- [`docs/04-FIREWALL-SECURITY.md#troubleshooting`](docs/04-FIREWALL-SECURITY.md#troubleshooting)
-- [`docs/05-CADDY-REVERSE-PROXY.md#troubleshooting`](docs/05-CADDY-REVERSE-PROXY.md#troubleshooting)
-
-## 🔮 Roadmap
-
-### ✅ Completed (Phase 1-3)
-
-- [x] **Terraform automation for OCI provisioning** - Full IaC implementation
-- [x] **Automated backup system** - Borg + human-readable exports
-- [x] **Pets vs Cattle pattern** - Persistent data volume, recreatable compute
-- [x] **Production hardening** - Firewall, Fail2ban, SSL, security headers
-- [x] **CI/CD with GitHub Actions** - Automated testing and deployment
-- [x] **Monitoring with Prometheus + Grafana** - Metrics collection and dashboards
-- [x] **Disaster Recovery tested** - 3 complete destroy/apply cycles validated
-
-### 🚧 In Progress (Phase 4)
-
-- [ ] **Grafana dashboard configuration** - Import pre-built dashboards
-- [ ] **Alerting setup** - Alertmanager for critical notifications
-
-### 📋 Planned (Phase 4+)
-
-- [ ] **Remote backup to cloud storage** - Off-site backup to OCI Object Storage
-- [ ] **Automated data migration scripts** - Easy migration between instances
-- [ ] **High availability setup** - Multi-region deployment (beyond free tier)
-
-## 🤝 Contributing
-
-This is a personal learning project, but feedback and suggestions are welcome!
-
-- Open an issue for bugs or feature requests
-- PRs welcome for documentation improvements
-- Share your experience deploying this setup
-
-## 📝 License
+## License
 
 MIT License - Feel free to use and modify for your own projects.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
-- [Nextcloud AIO](https://github.com/nextcloud/all-in-one) - Amazing all-in-one Nextcloud distribution
-- [Caddy](https://caddyserver.com/) - Modern web server with automatic HTTPS
-- [Oracle Cloud](https://www.oracle.com/cloud/free/) - Generous Always Free tier
-
-## 📧 Contact
-
-Project by Veronica Schembri - [Blog/Portfolio](https://www.veronicaschembri.com/)
+- [Nextcloud AIO](https://github.com/nextcloud/all-in-one) - All-in-one Nextcloud distribution
+- [Caddy](https://caddyserver.com/) - Automatic HTTPS web server
+- [Tailscale](https://tailscale.com/) - Zero-config VPN
+- [Oracle Cloud](https://www.oracle.com/cloud/free/) - Always Free tier
+- [Komga](https://komga.org/) - Comics/manga media server
+- [Jellyfin](https://jellyfin.org/) - Free media server
 
 ---
 
-**Note**: This project is for educational purposes. Always follow security best practices when deploying to production.
+Project by [Veronica Schembri](https://www.veronicaschembri.com/)
 
-_Last updated: November 2025_
+_Last updated: March 2025_

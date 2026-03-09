@@ -22,8 +22,8 @@ services:
     restart: always
 
     ports:
-      - "8080:8080" # AIO interface
-      - "8443:8443" # HTTPS AIO interface
+      - "127.0.0.1:8080:8080" # AIO interface (localhost only - access via Tailscale/SSH tunnel)
+      - "127.0.0.1:8443:8443" # HTTPS AIO interface (localhost only)
 
     environment:
       # APACHE_PORT and APACHE_IP_BINDING are required on ARM64
