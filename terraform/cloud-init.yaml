@@ -80,6 +80,26 @@ runcmd:
   - systemctl restart fail2ban
 
   # ===========================================================================
+  # NETWORK PERFORMANCE TUNING
+  # ===========================================================================
+
+  - echo "=== Configuring network performance ==="
+
+  # Enable BBR congestion control (significant improvement for Tailscale/WireGuard)
+  - echo -e "net.core.default_qdisc=fq\nnet.ipv4.tcp_congestion_control=bbr" | tee /etc/sysctl.d/99-bbr.conf
+  - modprobe tcp_bbr
+  - sysctl -p /etc/sysctl.d/99-bbr.conf
+
+  # Tailscale UDP optimizations (persistent via networkd-dispatcher)
+  - |
+    cat > /etc/networkd-dispatcher/routable.d/50-tailscale-udp <<'TSEOF'
+    #!/bin/bash
+    NETDEV=$(ip -o route get 8.8.8.8 | cut -f 5 -d " ")
+    ethtool -K $NETDEV rx-udp-gro-forwarding on rx-gro-list off
+    TSEOF
+  - chmod +x /etc/networkd-dispatcher/routable.d/50-tailscale-udp
+
+  # ===========================================================================
   # DOCKER INSTALLATION
   # ===========================================================================
 
