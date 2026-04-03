@@ -45,6 +45,10 @@ services:
       # Borg backup location
       - BORG_BACKUP_HOST_LOCATION=/mnt/nextcloud-data/borg-backups
 
+      # Mount media directory for Nextcloud External Storage
+      # Video and Fumetti are stored outside the datadir to exclude them from Borg backup
+      - NEXTCLOUD_MOUNT=/mnt/nextcloud-data/media
+
     volumes:
       # Main data directory - stores all Nextcloud AIO data
       - nextcloud_aio_mastercontainer:/mnt/docker-aio-config
@@ -101,8 +105,8 @@ services:
       - "127.0.0.1:25600:25600"
 
     volumes:
-      # Library files from Nextcloud user directory (read-only)
-      - /mnt/nextcloud-data/nextcloud-data/${NEXTCLOUD_USER}/files/${KOMGA_LIBRARY_PATH}:/data:ro
+      # Library files from external media directory (excluded from Borg backup)
+      - /mnt/nextcloud-data/media/Fumetti:/data:ro
       # Komga config and database
       - komga_config:/config
 
@@ -126,8 +130,8 @@ services:
       - "127.0.0.1:8096:8096"
 
     volumes:
-      # Video files from Nextcloud user directory (read-only)
-      - /mnt/nextcloud-data/nextcloud-data/${NEXTCLOUD_USER}/files/${JELLYFIN_LIBRARY_PATH}:/media:ro
+      # Video files from external media directory (excluded from Borg backup)
+      - /mnt/nextcloud-data/media/Video:/media:ro
       # Jellyfin config (persistent)
       - jellyfin_config:/config
 
