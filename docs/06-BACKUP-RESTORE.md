@@ -47,7 +47,7 @@ Guida completa per backup e disaster recovery di Nextcloud AIO.
 
 ❌ **Escluso**:
 
-- **Video** e **Fumetti** (media libraries per Jellyfin/Komga) - spostati in `/mnt/nextcloud-data/media/` come External Storage, fuori dal datadir di Nextcloud
+- **Video**, **Music**, **Photos** e **Fumetti** (media libraries per Jellyfin/Komga) - spostati in `/mnt/nextcloud-data/media/` come External Storage, fuori dal datadir di Nextcloud
 - External storage (se configurato)
 - Container images (si riscaricano)
 - Logs temporanei

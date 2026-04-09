@@ -46,7 +46,7 @@ services:
       - BORG_BACKUP_HOST_LOCATION=/mnt/nextcloud-data/borg-backups
 
       # Mount media directory for Nextcloud External Storage
-      # Video and Fumetti are stored outside the datadir to exclude them from Borg backup
+      # Video, Music, Photos and Fumetti are stored outside the datadir to exclude them from Borg backup
       - NEXTCLOUD_MOUNT=/mnt/nextcloud-data/media
 
     volumes:
@@ -130,8 +130,10 @@ services:
       - "127.0.0.1:8096:8096"
 
     volumes:
-      # Video files from external media directory (excluded from Borg backup)
-      - /mnt/nextcloud-data/media/Video:/media:ro
+      # Media files from external media directory (excluded from Borg backup)
+      - /mnt/nextcloud-data/media/Video:/media/video:ro
+      - /mnt/nextcloud-data/media/Music:/media/music:ro
+      - /mnt/nextcloud-data/media/Photos:/media/photos:ro
       # Jellyfin config (persistent)
       - jellyfin_config:/config
 

@@ -113,7 +113,7 @@ Android permette una sola VPN attiva alla volta. Non si possono usare Mullvad e 
 ### Utilizzo
 
 - **Navigazione con privacy** -> attiva Mullvad
-- **Accesso a Jellyfin / Komga / Grafana** -> attiva Tailscale
+- **Accesso a Jellyfin (video/musica/foto) / Komga / Grafana** -> attiva Tailscale
 
 ### Servizi accessibili via Tailscale
 

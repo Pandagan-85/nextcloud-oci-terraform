@@ -88,7 +88,7 @@ A complete self-hosted cloud platform running on Oracle Cloud's Always Free tier
 | **Reverse Proxy** | Caddy | Automatic HTTPS with Let's Encrypt |
 | **VPN** | Tailscale | Private access to internal services |
 | **Manga/Comics** | Komga | Reader integrated with Nextcloud files |
-| **Media Server** | Jellyfin | Video streaming from Nextcloud files |
+| **Media Server** | Jellyfin | Video, Music and Photos from Nextcloud files |
 | **Database** | PostgreSQL | Nextcloud database (via AIO) |
 | **Cache** | Redis | Performance optimization (via AIO) |
 | **Backup** | BorgBackup | Encrypted, deduplicated daily backups |
@@ -111,7 +111,7 @@ A complete self-hosted cloud platform running on Oracle Cloud's Always Free tier
 
 - **Nextcloud Hub** - Files, Calendar, Contacts, Tasks, Collabora Office, Photos
 - **Komga** - Manga/comics reader serving files directly from Nextcloud library
-- **Jellyfin** - Media server streaming video from Nextcloud library
+- **Jellyfin** - Media server for video, music and photos from Nextcloud library (Finamp as music client)
 - **Monitoring** - Prometheus + Grafana with pre-configured dashboards and exporters
 
 ### Security
