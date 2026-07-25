@@ -152,7 +152,9 @@ services:
       - no-new-privileges:true
 
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:8096/health || exit 1"]
+      # curl, non wget: l'immagine jellyfin/jellyfin non include wget e
+      # l'healthcheck falliva sempre con "wget: not found"
+      test: ["CMD-SHELL", "curl -fsS -o /dev/null http://localhost:8096/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
