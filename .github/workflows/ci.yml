@@ -86,6 +86,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # Gitleaks scans the PR commit range and needs the parent commit
+          # of the first commit; a shallow clone makes it fail to resolve it
+          fetch-depth: 0
 
       # Terraform security
       - name: Run tfsec
