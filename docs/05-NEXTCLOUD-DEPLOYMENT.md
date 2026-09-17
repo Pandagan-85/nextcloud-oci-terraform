@@ -221,7 +221,7 @@ Dovrebbe mostrarti la pagina di login Nextcloud con **certificato SSL valido**! 
 
 ### 5.2 Crea admin user
 
-1. **Username**: (usa quello configurato in .env, es: `pandagan_queen`)
+1. **Username**: (usa quello configurato in .env, es: `YOUR_ADMIN_USER`)
 2. **Password**: (password forte configurata in .env)
 3. Clicca "Install"
 

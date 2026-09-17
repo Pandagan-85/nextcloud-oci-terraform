@@ -61,12 +61,21 @@ A complete self-hosted cloud platform running on Oracle Cloud's Always Free tier
                                         |  - cAdvisor                |
                                         +----------------------------+
 
-+------------------------------------------------------------+
-|  Persistent Block Volume (100GB, prevent_destroy)          |
-|  /mnt/nextcloud-data/                                      |
-|    +-- nextcloud-data/ (user files, database, config)      |
-|    +-- borg-backups/ (encrypted daily backups)             |
-+------------------------------------------------------------+
++----------------------------------------------------------------------+
+|  Persistent Block Volume (147GB, prevent_destroy)                    |
+|  /mnt/nextcloud-data/                                                |
+|                                                                      |
+|   +-- nextcloud-data/  user files, database, config        2.1 GB    |
+|   |                                                   [BACKED UP]    |
+|   |                                                                  |
+|   +-- media/           Fumetti, Music, Photos, Video        46 GB    |
+|   |                                               [NOT BACKED UP]    |
+|   |     +-> into Nextcloud via the files_external app                |
+|   |     +-> into Jellyfin and Komga as read-only bind mounts         |
+|   |                                                                  |
+|   +-- borg-backups/    encrypted daily backups              7.0 GB   |
+|         +-> mirrored to a local machine by local-backup-sync.sh      |
++----------------------------------------------------------------------+
 ```
 
 **Design pattern: "Pets vs Cattle"**
@@ -74,6 +83,21 @@ A complete self-hosted cloud platform running on Oracle Cloud's Always Free tier
 - **Cattle (Compute):** Instance is ephemeral and fully recreatable via `terraform destroy` + `terraform apply`
 - **Pet (Storage):** Persistent block volume is protected (`prevent_destroy = true`) and holds all critical data
 - **Disaster Recovery:** Infrastructure can be rebuilt from scratch while data survives on the protected volume
+
+**Storage layout: one copy, many consumers**
+
+Media lives in `media/`, outside the Nextcloud data directory, and is shared by
+three consumers from that single copy: Nextcloud mounts it through the
+`files_external` app, while Jellyfin and Komga bind-mount it read-only. This
+avoids duplicating 46 GB across services.
+
+The trade-off is that **`media/` falls outside the backup perimeter**: Borg covers
+the Nextcloud data directory and the AIO volumes, not paths mounted through
+`files_external`. This is deliberate, not an oversight — that directory holds
+replaceable content (series, books, music) whose source of truth is an external
+drive, and the server only exists to make it reachable from several devices.
+Anything that must survive a disaster belongs in `nextcloud-data/`, which is
+backed up daily.
 
 ## Tech Stack
 
@@ -176,7 +200,7 @@ nextcloud-oci-terraform/
 |   +-- ssh-connect.sh            # Quick SSH connection
 |   +-- README.md                 # Scripts reference
 |
-+-- docs/                         # Comprehensive guides (11 documents)
++-- docs/                         # Comprehensive guides (14 documents)
 |   +-- 01-INITIAL-SETUP.md      # SSH and first connection
 |   +-- 02-SYSTEM-SETUP.md       # System configuration
 |   +-- 03-DOCKER-SETUP.md       # Docker installation
@@ -188,6 +212,9 @@ nextcloud-oci-terraform/
 |   +-- 08-TERRAFORM-STRATEGY.md # IaC patterns and workflows
 |   +-- 09-CICD-MONITORING.md    # CI/CD pipeline architecture
 |   +-- 10-LOCAL-BACKUP-MANAGEMENT.md  # Local backup automation
+|   +-- 11-VPN-PRIVACY-SETUP.md  # VPN and privacy configuration
+|   +-- 12-BORG-CHEATSHEET.md    # Borg command reference
+|   +-- 13-AIO-UPDATE-TROUBLESHOOTING.md  # AIO updates and outage diagnosis
 |
 +-- .github/workflows/           # CI/CD pipelines
 |   +-- ci.yml                   # Main CI (PR + push validation)
@@ -351,6 +378,9 @@ Typical consumption on OCI Always Free tier (single-user setup):
 | [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md) | IaC patterns and operational workflows |
 | [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md) | CI/CD pipeline architecture |
 | [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | Local backup automation guide |
+| [`11-VPN-PRIVACY-SETUP.md`](docs/11-VPN-PRIVACY-SETUP.md) | VPN and privacy configuration |
+| [`12-BORG-CHEATSHEET.md`](docs/12-BORG-CHEATSHEET.md) | Borg backup command reference |
+| [`13-AIO-UPDATE-TROUBLESHOOTING.md`](docs/13-AIO-UPDATE-TROUBLESHOOTING.md) | AIO update model and outage diagnosis |
 | [`terraform/README.md`](terraform/README.md) | Terraform deployment guide |
 | [`scripts/README.md`](scripts/README.md) | Scripts reference |
 | [`ROADMAP.md`](ROADMAP.md) | Project roadmap and progress |
