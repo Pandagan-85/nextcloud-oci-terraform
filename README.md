@@ -176,7 +176,7 @@ nextcloud-oci-terraform/
 |   +-- ssh-connect.sh            # Quick SSH connection
 |   +-- README.md                 # Scripts reference
 |
-+-- docs/                         # Comprehensive guides (11 documents)
++-- docs/                         # Comprehensive guides (14 documents)
 |   +-- 01-INITIAL-SETUP.md      # SSH and first connection
 |   +-- 02-SYSTEM-SETUP.md       # System configuration
 |   +-- 03-DOCKER-SETUP.md       # Docker installation
@@ -188,6 +188,9 @@ nextcloud-oci-terraform/
 |   +-- 08-TERRAFORM-STRATEGY.md # IaC patterns and workflows
 |   +-- 09-CICD-MONITORING.md    # CI/CD pipeline architecture
 |   +-- 10-LOCAL-BACKUP-MANAGEMENT.md  # Local backup automation
+|   +-- 11-VPN-PRIVACY-SETUP.md  # VPN and privacy configuration
+|   +-- 12-BORG-CHEATSHEET.md    # Borg command reference
+|   +-- 13-AIO-UPDATE-TROUBLESHOOTING.md  # AIO updates and outage diagnosis
 |
 +-- .github/workflows/           # CI/CD pipelines
 |   +-- ci.yml                   # Main CI (PR + push validation)
@@ -351,6 +354,9 @@ Typical consumption on OCI Always Free tier (single-user setup):
 | [`08-TERRAFORM-STRATEGY.md`](docs/08-TERRAFORM-STRATEGY.md) | IaC patterns and operational workflows |
 | [`09-CICD-MONITORING.md`](docs/09-CICD-MONITORING.md) | CI/CD pipeline architecture |
 | [`10-LOCAL-BACKUP-MANAGEMENT.md`](docs/10-LOCAL-BACKUP-MANAGEMENT.md) | Local backup automation guide |
+| [`11-VPN-PRIVACY-SETUP.md`](docs/11-VPN-PRIVACY-SETUP.md) | VPN and privacy configuration |
+| [`12-BORG-CHEATSHEET.md`](docs/12-BORG-CHEATSHEET.md) | Borg backup command reference |
+| [`13-AIO-UPDATE-TROUBLESHOOTING.md`](docs/13-AIO-UPDATE-TROUBLESHOOTING.md) | AIO update model and outage diagnosis |
 | [`terraform/README.md`](terraform/README.md) | Terraform deployment guide |
 | [`scripts/README.md`](scripts/README.md) | Scripts reference |
 | [`ROADMAP.md`](ROADMAP.md) | Project roadmap and progress |
