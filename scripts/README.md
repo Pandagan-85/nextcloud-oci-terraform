@@ -249,6 +249,41 @@ Script wrapper che esegue entrambi i backup (Borg + Export).
 
 ---
 
+### 🔄 Aggiornamenti
+
+#### `update-containers.sh`
+
+Aggiorna i container fuori da AIO: Caddy, Komga, Jellyfin e lo stack di monitoring.
+
+```bash
+./scripts/update-containers.sh
+```
+
+**Perché serve:**
+
+Questi servizi usano il tag `:latest`, ma sul server nessuno li aggiorna: il watchtower di AIO si occupa solo del mastercontainer. Senza questo script restano fermi all'immagine scaricata l'ultima volta (a ottobre 2026 Caddy era indietro di 14 mesi).
+
+**Cosa fa:**
+
+- 📥 Scarica le immagini nuove senza toccare i container in esecuzione
+- 📋 Mostra per ogni servizio la data dell'immagine attuale e di quella nuova
+- ❓ Chiede conferma prima di ricreare i container (rispondendo `n` le immagini restano scaricate e non cambia nulla)
+- 🔄 Ricrea solo i container con un'immagine nuova
+- ✅ Aspetta fino a 3 minuti e segnala i container in crash, con il comando `docker logs` da lanciare
+
+**⚠️ Importante:**
+
+- Il mastercontainer AIO è escluso apposta: aggiornarlo fuori dall'interfaccia AIO lascia i container figli su immagini vecchie e manda giù Nextcloud (vedi `docs/13-AIO-UPDATE-TROUBLESHOOTING.md`)
+- Se tra i container da ricreare c'è Caddy, Nextcloud non risponde per qualche secondo
+- Dopo mesi senza aggiornamenti alcuni servizi migrano il database al primo avvio: se lo script segnala `WAIT`, aspetta e ricontrolla con `docker ps`
+
+**Quando usarlo:**
+
+- Ogni mese circa, a mano
+- Quando esce un avviso di sicurezza che riguarda uno di questi servizi (per Java, l'unico interessato è Komga)
+
+---
+
 ### ⚙️ Setup e Configurazione
 
 #### `setup-cron.sh`
@@ -528,6 +563,10 @@ Per informazioni dettagliate:
 - `export-data.sh` - Export calendari/contatti in formato leggibile
 - `weekly-backup.sh` - Wrapper per backup completo settimanale
 
+### Aggiornamenti
+
+- `update-containers.sh` - Aggiorna Caddy, Komga, Jellyfin e monitoring (esclude AIO)
+
 ### Setup & Configurazione
 
 - `setup-cron.sh` - Configura automazione backup settimanali
@@ -539,4 +578,4 @@ Per informazioni dettagliate:
 
 ---
 
-_Last updated: 11 November 2025_
+_Last updated: 22 October 2026_
