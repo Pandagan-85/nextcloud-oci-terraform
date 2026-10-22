@@ -139,7 +139,9 @@ services:
 
     tmpfs:
       # Transcoding cache in RAM (faster than disk volume)
-      - /cache:size=2G
+      # Jellyfin 12.2 refuses to start unless /cache has at least 2GB free:
+      # with size=2G the free space is just under the threshold
+      - /cache:size=3G
       # Jellyfin 10.10+ requires at least 2GB in /tmp/jellyfin
       - /tmp:size=3G,mode=1777
 
